@@ -29,7 +29,7 @@ int main(void) {
 	tmpD = PINA & 0x08;
 
 	if (tmpA == 0x01){
-		cntavail =0x01;
+		cntavail = cntavail + 0x01;
 	}	
 	if(tmpB==0x02){
 		cntavail = cntavail + 0x01;

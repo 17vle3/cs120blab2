@@ -13,21 +13,34 @@
 #endif
 
 int main(void) {
-    DDRA = 0x00; PORTA = 0xFF;
-    DDRB = 0xFF; PORTB = 0x00;  
+    DDRA = 0x00; PORTA = 0xFF; //port a = inputs
+    DDRB = 0xFF; PORTB = 0x00;  //port b = outputs
+    DDRC = 0xFF; PORTC = 0x00;
+
     unsigned char tmpB = 0x00;
-    unsigned char tmpA = 0x00;    
+    unsigned char tmpA = 0x00;
+    unsigned char tmpC = 0x00;
+    unsigned char tmpD = 0x00;
+    unsigned char cntavail = 0x00;    
     while (1) {
 	tmpA = PINA & 0x01;
 	tmpB = PINA & 0x02;
+	tmpC = PINA & 0x04;
+	tmpD = PINA & 0x08;
 
-	if (tmpA == 0x01 && tmpB != 0x02){
-		tmpB = (tmpB & 0xFC) | 0x01;
+	if (tmpA == 0x01){
+		cntavail =0x01;
 	}	
-	else{
-		tmpB = (tmpB & 0xFC) | 0x00;
+	if(tmpB==0x02){
+		cntavail = cntavail + 0x01;
 	}
-	PORTB = tmpB;
+	if(tmpC == 0x04){
+		cntavail = cntavail + 0x01;
+	}
+	if(tmpD == 0x08){
+		cntavail = cntavail + 0x01;
+	}
+	PORTC = cntavail;
     }
     
     return 0;

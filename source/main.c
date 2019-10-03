@@ -45,6 +45,9 @@ int main(void) {
 	if(tmpD == 0x08){
 		cntavail = cntavail + 1;
 	}
+	if(cntavail ==4){
+		cntavail = cntavail + 128;	
+	}
 	PORTC = cntavail;
     }
     

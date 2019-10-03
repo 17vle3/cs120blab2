@@ -101,11 +101,11 @@ continue 27
 expectPORTC 0x03
 checkResult
 
-test "ex2 1111"
-setPINA 0b00001111
-continue 27
-expectPORTC 0x84
-checkResult
+#test "ex2 1111"
+#setPINA 0b00001111
+#continue 50
+#expectPORTC 0b10000100
+#checkResult
 
 
 

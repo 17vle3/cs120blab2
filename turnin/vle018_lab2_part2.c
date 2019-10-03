@@ -29,7 +29,6 @@ int main(void) {
 	tmpD = PINA & 0x08;  
 	unsigned char cntavail = 0x00; 
 	PORTB = 0;
-	PORTC = 0;
 	    
 	if(tmpA == 0x01 && tmpB == 0x00){
 		PORTB = 1;	
@@ -47,8 +46,8 @@ int main(void) {
 	if(tmpD == 0x08){
 		cntavail = cntavail + 1;
 	}
-	if(cntavail == 0x04){
-		cntavail =  0b10000100;	
+	if(cntavail ==0x04){
+		cntavail = cntavail + 0b10000100;	
 	}
 	PORTC = cntavail;
     }

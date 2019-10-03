@@ -104,7 +104,7 @@ checkResult
 test "ex2 1111"
 setPINA 0x0F
 continue 18
-expectPORTC 0x04
+expectPORTC 0x84
 checkResult
 
 

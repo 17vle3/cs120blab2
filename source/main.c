@@ -27,7 +27,12 @@ int main(void) {
 	tmpB = PINA & 0x02;
 	tmpC = PINA & 0x04;
 	tmpD = PINA & 0x08;
-
+	    
+	    
+	if(tmpA == 0x01 && tmpB == 0x00){
+		PORTB = 1;	
+	}
+		
 	if (tmpA == 0x01){
 		cntavail = cntavail + 0x01;
 	}	

@@ -21,29 +21,29 @@ int main(void) {
     unsigned char tmpA = 0x00;
     unsigned char tmpC = 0x00;
     unsigned char tmpD = 0x00;
-    unsigned char cntavail = 0x00;    
+       
     while (1) {
 	tmpA = PINA & 0x01;
 	tmpB = PINA & 0x02;
 	tmpC = PINA & 0x04;
-	tmpD = PINA & 0x08;
-	    
+	tmpD = PINA & 0x08;  
+	unsigned char cntavail = 0x00; 
 	    
 	if(tmpA == 0x01 && tmpB == 0x00){
 		PORTB = 1;	
 	}
 		
 	if (tmpA == 0x01){
-		cntavail = cntavail + 0x01;
+		cntavail = 1;
 	}	
 	if(tmpB==0x02){
-		cntavail = cntavail + 0x01;
+		cntavail = cntavail + 1;
 	}
 	if(tmpC == 0x04){
-		cntavail = cntavail + 0x01;
+		cntavail = cntavail + 1;
 	}
 	if(tmpD == 0x08){
-		cntavail = cntavail + 0x01;
+		cntavail = cntavail + 1;
 	}
 	PORTC = cntavail;
     }

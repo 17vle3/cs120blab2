@@ -43,25 +43,25 @@ checkResult
 test "ex1 00"
 setPINA 0x00
 continue 18 
-expectPORTC 0x00
+expectPORTB 0x00
 checkResult
 
 test "ex1 01"
 setPINA 0x01
 continue 18
-expectPORTC 0x01
+expectPORTB 0x01
 checkResult
 
 test "ex1 10"
 setPINA 0x02
 continue 18
-expectPORTC 0x00
+expectPORTB 0x00
 checkResult
 
 test "ex1 11"
 setPINA 0x03
 continue 18
-expectPORTC 0x00
+expectPORTB 0x00
 checkResult
 
 test "ex2 0000"
@@ -91,20 +91,20 @@ checkResult
 
 test "ex2 1110"
 setPINA 0x0E
-continue 18
+continue 27
 expectPORTC 0x03
 checkResult
 
 test "ex2 0111"
 setPINA 0x07
-continue 18
+continue 27
 expectPORTC 0x03
 checkResult
 
 test "ex2 1111"
 setPINA 0x0F
-continue 18
-expectPORTC 0x84
+continue 27
+expectPORTC 0b10000100
 checkResult
 
 

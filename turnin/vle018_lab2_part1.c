@@ -1,6 +1,6 @@
 /*	Author: vle018
  *  Partner(s) Name: Mari Hayashi
- *	Lab Section:
+ *	Lab Section: 023
 
  *	Exercise Description: [optional - include for your own benefit]
  *

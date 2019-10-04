@@ -14,37 +14,43 @@
 
 int main(void) {
     DDRA = 0x00; PORTA = 0xFF; //port a = inputs
-    DDRB = 0x00; PORTB = 0xFF; //port b = outputs
-    DDRC = 0x00; PORTC = 0xFF;
-    DDRD = 0xFF; PORTD = 0x00;
+    DDRB = 0xFF; PORTB = 0x00;  //port b = outputs
+    DDRC = 0xFF; PORTC = 0x00;
 
-    unsigned char add = 0x00;
-    unsigned char aC = 0x00;
-    unsigned char cA = 0x00;
-    unsigned char aTemp = 0x00;
-    unsigned char bTemp = 0x00;
-    unsigned char cTemp = 0x00;
+    unsigned char tmpB = 0x00;
+    unsigned char tmpA = 0x00;
+    unsigned char tmpC = 0x00;
+    unsigned char tmpD = 0x00;
+       
     while (1) {
-	aTemp = PINA;
-	bTemp = PINB;
-	cTemp = PINC;
-	add = aTemp + bTemp + cTemp;
-	aC = PINA - PINC;
-	cA = PINC - PINA;
-
-	unsigned char output = 0x00;
+	tmpA = PINA & 0x01;
+	tmpB = PINA & 0x02;
+	tmpC = PINA & 0x04;
+	tmpD = PINA & 0x08;  
+	unsigned char cntavail = 0x00; 
+	PORTB = 0;
 	    
-	if(add > 0x8C ){
-		output = 0x01;	
+	if(tmpA == 0x01 && tmpB == 0x00){
+		PORTB = 1;	
 	}
 		
-	if ( (aC> 0b1010000) || (cA > 0b1010000 ) ){
-		output = output| 0x02;
+	if (tmpA == 0x01){
+		cntavail = 1;
 	}	
-	PORTD = output;
+	if(tmpB==0x02){
+		cntavail = cntavail + 1;
+	}
+	if(tmpC == 0x04){
+		cntavail = cntavail + 1;
+	}
+	if(tmpD == 0x08){
+		cntavail = cntavail + 1;
+	}
+	//if(cntavail ==0x04){
+	//	cntavail = cntavail + 1;	
+	//}
+	PORTC = cntavail;
     }
     
     return 0;
 }
-
-

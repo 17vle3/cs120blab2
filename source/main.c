@@ -22,6 +22,7 @@ int main(void) {
 		unsigned char cntavail = 0x00; //count num of 1s in A and B (max 8)
 		PORTB = 0;
 	       
+	       	//for every digit from the right, count the number of ones and add to cnt avail in a then b
 	       	int i = 0;
 	       	int count = 0;
 		for(i = 0; i < 9 ; i = i * 2 ){

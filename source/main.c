@@ -13,43 +13,36 @@
 #endif
 
 int main(void) {
-    DDRA = 0x00; PORTA = 0xFF; //port a = inputs
-    DDRB = 0xFF; PORTB = 0x00;  //port b = outputs
-    DDRC = 0xFF; PORTC = 0x00;
+	DDRA = 0x00; PORTA = 0xFF; //port a = inputs
+	DDRB = 0x00; PORTB = 0xFF;  //port b = input
+	DDRC = 0xFF; PORTC = 0x00; //port c = output 
+	
 
-    unsigned char tmpB = 0x00;
-    unsigned char tmpA = 0x00;
-    unsigned char tmpC = 0x00;
-    unsigned char tmpD = 0x00;
-       
-    while (1) {
-	tmpA = PINA & 0x01;
-	tmpB = PINA & 0x02;
-	tmpC = PINA & 0x04;
-	tmpD = PINA & 0x08;  
-	unsigned char cntavail = 0x00; 
-	PORTB = 0;
-	    
-	if(tmpA == 0x01 && tmpB == 0x00){
-		PORTB = 1;	
-	}
-		
-	if (tmpA == 0x01){
-		cntavail = 1;
-	}	
-	if(tmpB==0x02){
-		cntavail = cntavail + 1;
-	}
-	if(tmpC == 0x04){
-		cntavail = cntavail + 1;
-	}
-	if(tmpD == 0x08){
-		cntavail = cntavail + 1;
-	}
-	//if(cntavail ==0x04){
-	//	cntavail = cntavail + 1;	
-	//}
-	PORTC = cntavail;
+       while (1) {
+		unsigned char cntavail = 0x00; //count num of 1s in A and B (max 8)
+		PORTB = 0;
+	       
+	       	int i = 0;
+	       	int count = 0;
+		for(i = 0; i < 9 ; i = i * 2 ){
+			unsigned char temp = (PINA & i);
+			temp = temp >> count;
+			if(temp) {
+				cntavail = cntavail +1;	
+			}
+			++ count;
+		}
+	       	i = 0;
+	        count = 0;
+		for(i = 0; i < 9 ; i = i * 2 ){
+			unsigned char temp = (PINB & i);
+			temp = temp >> count;
+			if(temp) {
+				cntavail = cntavail +1;	
+			}
+			++ count;
+		}
+		PORTC = cntavail;
     }
     
     return 0;

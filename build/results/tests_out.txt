@@ -1,10 +1,13 @@
-Breakpoint 1 at 0xea: file source/main.c, line 23.
+Breakpoint 1 at 0xee: file source/main.c, line 22.
 Note: automatically using hardware breakpoints for read-only addresses.
 ======================================================
 Running all tests..."
 
-"1"..."2"..."3"..."4"..."5"..."6"..."7"..."8"..."9"..."10"..."11"..."12"..."13"..."14"..."15"..."15, key, seated and fastened"..."9, no key, seated and fastened"..."15, key, seated and not fastened"...
-	Expected 0b10111111 
-	PORTC '0x800028:	0xbf
-======================================================
+"1111 1111"...
+	Expected 0b11110000 
+	PORTC '0x800028:	0xf0
+"1001 1111"...
+	Expected 0b11110000 
+	PORTC '0x800028:	0xf0
+"1001 0000"...======================================================
 Quitting: Remote doesn't know how to detach

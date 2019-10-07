@@ -29,34 +29,95 @@ echo Running all tests..."\n\n
 
 # Add tests below
 
-test "1+1"
+test "input is 1"
 setPINA 0x01
-setPINB 0x01
 continue 18
-expectPORTC 0x02
+expectPORTC 0b1100000
 checkResult
 
-test "1111 + 1111"
-setPINA 0b1111
-setPINB 0b1111
+test "input is 2"
+setPINA 0x01
 continue 18
-expectPORTC 0x08
+expectPORTC 0b1100000
 checkResult
 
-test "1001 + 1111"
-setPINA 0b1001
-setPINB 0b1111
+test "input is 3"
+setPINA 0x03
 continue 18
-expectPORTC 0x06
+expectPORTC 0b1110000
 checkResult
 
-test "1111 1111 + 1111 1111"
-setPINA 0b11111111
-setPINB 0b11111111
+test "input is 4"
+setPINA 0x03
 continue 18
-expectPORTC 0x10
+expectPORTC 0b1110000
 checkResult
 
+test "input is 5"
+setPINA 0x05
+continue 18
+expectPORTC 0b0111000
+checkResult
+
+test "input is 6"
+setPINA 0x05
+continue 18
+expectPORTC 0b0111000
+checkResult
+
+test "input is 7"
+setPINA 0x07
+continue 18
+expectPORTC 0b0111100
+checkResult
+
+test "input is 8"
+setPINA 0x08
+continue 18
+expectPORTC 0b0111100
+checkResult
+
+test "input is 9"
+setPINA 0x09
+continue 18
+expectPORTC 0b0111100
+checkResult
+
+test "input is 10"
+setPINA 0x0A
+continue 18
+expectPORTC 0b0111110
+checkResult
+
+test "input is 11"
+setPINA 0x0B
+continue 18
+expectPORTC 0b0111110
+checkResult
+
+test "input is 12"
+setPINA 0x0C
+continue 18
+expectPORTC 0b0111110
+checkResult
+
+test "input is 13"
+setPINA 0x0D
+continue 18
+expectPORTC 0b0111111
+checkResult
+
+test "input is 14"
+setPINA 0x0E
+continue 18
+expectPORTC 0b0111111
+checkResult
+
+test "input is 15"
+setPINA 0x0F
+continue 18
+expectPORTC 0b0111111
+checkResult
 
 # Report on how many tests passed/tests ran
 set $passed=$tests-$failed

@@ -29,39 +29,94 @@ echo Running all tests..."\n\n
 
 # Add tests below
 
-test "1+1"
+test "1"
 setPINA 0x01
-setPINB 0x01
 continue 18
-expectPORTC 0x02
+expectPORTC 0b01100000
 checkResult
 
-test "1111+1111
-setPINA 0b1111
-setPINB 0b1111
+test "2"
+setPINA 0x02
 continue 18
-expectPORTC 0x08
+expectPORTC 0b01100000
 checkResult
 
-test "1001+1111
-setPINA 0b1001
-setPINB 0b1111
+test "3"
+setPINA 0x03
 continue 18
-expectPORTC 0x06
+expectPORTC 0b01110000
 checkResult
 
-test "1111 1111 +1111 1111"
-setPINA 0b11111111
-setPINB 0b11111111
+test "4"
+setPINA 0x04
 continue 18
-expectPORTC 0x10
+expectPORTC 0b01110000
 checkResult
 
-test "1111 1101 +1101 1111"
-setPINA 0b11111101
-setPINB 0b11011111
+test "5"
+setPINA 0x05
 continue 18
-expectPORTC 0x0E
+expectPORTC 0b00111000
+checkResult
+
+test "6"
+setPINA 0x06
+continue 18
+expectPORTC 0b00111000
+checkResult
+
+test "7"
+setPINA 0x07
+continue 18
+expectPORTC 0b00111100
+checkResult
+
+test "8"
+setPINA 0x08
+continue 18
+expectPORTC 0b00111100
+checkResult
+
+test "9"
+setPINA 0x09
+continue 18
+expectPORTC 0b00111100
+checkResult
+
+test "10"
+setPINA 0x0A
+continue 18
+expectPORTC 0b00111110
+checkResult
+
+test "11"
+setPINA 0x0B
+continue 18
+expectPORTC 0b00111110
+checkResult
+
+test "12"
+setPINA 0x0C
+continue 18
+expectPORTC 0b00111110
+checkResult
+
+test "13"
+setPINA 0x0D
+continue 18
+expectPORTC 0b00111111
+checkResult
+
+test "14"
+setPINA 0x0D
+continue 18
+expectPORTC 0b00111111
+checkResult
+
+test "15"
+setPINA 0x0D
+continue 18
+expectPORTC 0b00111111
 checkResult
 
 

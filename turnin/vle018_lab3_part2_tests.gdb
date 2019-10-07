@@ -1,54 +1,126 @@
-/*	Author: vle018
- *  Partner(s) Name: Mari Hayashi
- *	Lab Section:
+# Test file for Lab2_introToAVR
 
- *	Exercise Description: [optional - include for your own benefit]
- *
- *	I acknowledge all content contained herein, excluding template or example
- *	code, is my own original work.
- */
-#include <avr/io.h>
-#ifdef _SIMULATE_
-#include "simAVRHeader.h"
-#endif
 
-int main(void) {
-	DDRA = 0x00; PORTA = 0xFF; //port a = inputs
-	DDRC = 0xFF; PORTC = 0x00; //port c = output 
-	unsigned char a = 0x00;
+# commands.gdb provides the following functions for ease:
+#   test "<message>"
+#       Where <message> is the message to print. Must call this at the beginning of every test
+#       Example: test "PINA: 0x00 => expect PORTC: 0x01"
+#   checkResult
+#       Verify if the test passed or failed. Prints "passed." or "failed." accordingly, 
+#       Must call this at the end of every test.
+#   expectPORTx <val>
+#       With x as the port (A,B,C,D)
+#       The value the port is epected to have. If not it will print the erroneous actual value
+#   setPINx <val>
+#       With x as the port or pin (A,B,C,D)
+#       The value to set the pin to (can be decimal or hexidecimal
+#       Example: setPINA 0x01
+#   printPORTx f OR printPINx f 
+#       With x as the port or pin (A,B,C,D)
+#       With f as a format option which can be: [d] decimal, [x] hexadecmial (default), [t] binary 
+#       Example: printPORTC d
+#   printDDRx
+#       With x as the DDR (A,B,C,D)
+#       Example: printDDRB
 
-       while (1) {
-		
-		a = PINA ; //a = input a
-		unsigned char fourLess = 0x00;
-	       	unsigned char output = 0x00;
-		if(a == 0x01 || a == 0x02) {
-			output = 0x20;
-			fourLess = 0x01;
-		}
-		else if(a == 0x03 || a == 0x04) {
-			output = 0x30;
-			fourLess = 0x01;
-		}
-		else if(a == 0x05 || a == 0x06) {
-			output = 0x38;
-		}
-		else if(a >= 0x07 && a <= 0x09) {
-			output = 0x3C;
-		}
-		else if(a >= 0x0A && a <= 0x0C) {
-			output = 0x3E;
-		}
-		else if(a >= 0x0D && a <= 0x0F) {
-			output = 0x3F;
-		}
-		
-		if(fourLess){
-			output = output | 0x40;
-		}	
-		PORTC = output;
-    }
-    
-    return 0;
-}
+echo ======================================================\n
+echo Running all tests..."\n\n
 
+
+# Add tests below
+
+test "1"
+setPINA 0x01
+continue 18
+expectPORTC 0b01100000
+checkResult
+
+test "2"
+setPINA 0x02
+continue 18
+expectPORTC 0b01100000
+checkResult
+
+test "3"
+setPINA 0x03
+continue 18
+expectPORTC 0b01110000
+checkResult
+
+test "4"
+setPINA 0x04
+continue 18
+expectPORTC 0b01110000
+checkResult
+
+test "5"
+setPINA 0x05
+continue 18
+expectPORTC 0b00111000
+checkResult
+
+test "6"
+setPINA 0x06
+continue 18
+expectPORTC 0b00111000
+checkResult
+
+test "7"
+setPINA 0x07
+continue 18
+expectPORTC 0b00111100
+checkResult
+
+test "8"
+setPINA 0x08
+continue 18
+expectPORTC 0b00111100
+checkResult
+
+test "9"
+setPINA 0x09
+continue 18
+expectPORTC 0b00111100
+checkResult
+
+test "10"
+setPINA 0x0A
+continue 18
+expectPORTC 0b00111110
+checkResult
+
+test "11"
+setPINA 0x0B
+continue 18
+expectPORTC 0b00111110
+checkResult
+
+test "12"
+setPINA 0x0C
+continue 18
+expectPORTC 0b00111110
+checkResult
+
+test "13"
+setPINA 0x0D
+continue 18
+expectPORTC 0b00111111
+checkResult
+
+test "14"
+setPINA 0x0D
+continue 18
+expectPORTC 0b00111111
+checkResult
+
+test "15"
+setPINA 0x0D
+continue 18
+expectPORTC 0b00111111
+checkResult
+
+
+# Report on how many tests passed/tests ran
+set $passed=$tests-$failed
+eval "shell echo Passed %d/%d tests.\n",$passed,$tests
+echo ======================================================\n

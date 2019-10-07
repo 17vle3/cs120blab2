@@ -14,36 +14,41 @@
 
 int main(void) {
 	DDRA = 0x00; PORTA = 0xFF; //port a = inputs
-	DDRB = 0x00; PORTB = 0xFF;  //port b = input
 	DDRC = 0xFF; PORTC = 0x00; //port c = output 
-	
+	unsigned char a = 0x00;
 
        while (1) {
-		unsigned char cntavail = 0x00; //count num of 1s in A and B (max 8)
-		PORTB = 0;
-	       
-	       	//for every digit from the right, count the number of ones and add to cnt avail in a then b
-	       	int i = 0;
-	       	int count = 0;
-		for(i = 1; i < 129 ; i = i * 2 ){
-			unsigned char temp = (PINA & i);
-			temp = temp >> count;
-			if(temp) {
-				cntavail = cntavail +1;	
-			}
-			++ count;
+		
+		a = PINA ; //a = input a
+		unsigned char fourLess = 0x00;
+	       	unsigned char output = 0x00;
+		if(a == 0x01 || a == 0x02) {
+			output = 0x20;
+			fourLess = 0x01;
 		}
-	        count = 0;
-		for(i = 1; i < 129 ; i = i * 2 ){
-			unsigned char temp = (PINB & i);
-			temp = temp >> count;
-			if(temp) {
-				cntavail = cntavail +1;	
-			}
-			++ count;
+		else if(a == 0x03 || a == 0x04) {
+			output = 0x30;
+			fourLess = 0x01;
 		}
-		PORTC = cntavail;
+		else if(a == 0x05 || a == 0x06) {
+			output = 0x38;
+		}
+		else if(a >= 0x07 && a <= 0x09) {
+			output = 0x3C;
+		}
+		else if(a >= 0x0A && a <= 0x0C) {
+			output = 0x3E;
+		}
+		else if(a >= 0x0D && a <= 0x0F) {
+			output = 0x3F;
+		}
+		
+		if(fourLess){
+			output = output | 0x40;
+		}	
+		PORTC = output;
     }
     
     return 0;
 }
+

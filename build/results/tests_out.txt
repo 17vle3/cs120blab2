@@ -1,7 +1,7 @@
-Breakpoint 1 at 0xf2: file source/main.c, line 27.
+Breakpoint 1 at 0xf8: file source/main.c, line 21.
 Note: automatically using hardware breakpoints for read-only addresses.
 ======================================================
 Running all tests..."
 
-"total weight at 140"..."total weight at 141 (overweight)"..."rlly overweight"..."overweight and diff"..."diff"..."all inputs 0"...======================================================
+"1+1"..."1111 + 1111"..."1001 + 1111"..."1111 1111 + 1111 1111"...======================================================
 Quitting: Remote doesn't know how to detach

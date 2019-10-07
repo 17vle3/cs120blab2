@@ -61,7 +61,7 @@ test "1111 1101 +1101 1111"
 setPINA 0b11111101
 setPINB 0b11011111
 continue 18
-expectPORTC 0x0D
+expectPORTC 0x0E
 checkResult
 
 

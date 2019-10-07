@@ -1,7 +1,7 @@
-Breakpoint 1 at 0xea: file source/main.c, line 20.
+Breakpoint 1 at 0xf8: file source/main.c, line 21.
 Note: automatically using hardware breakpoints for read-only addresses.
 ======================================================
 Running all tests..."
 
-"input is 1"..."input is 2"..."input is 3"..."input is 4"..."input is 5"..."input is 6"..."input is 7"..."input is 8"..."input is 9"..."input is 10"..."input is 11"..."input is 12"..."input is 13"..."input is 14"..."input is 15"...======================================================
+"1+1"..."1111+1111..."1001+1111..."1111 1111 +1111 1111"..."1111 1101 +1101 1111"...======================================================
 Quitting: Remote doesn't know how to detach

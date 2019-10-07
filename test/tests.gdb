@@ -108,15 +108,33 @@ expectPORTC 0b00111111
 checkResult
 
 test "14"
-setPINA 0x0D
+setPINA 0x0E
 continue 18
 expectPORTC 0b00111111
 checkResult
 
 test "15"
-setPINA 0x0D
+setPINA 0x0F
 continue 18
 expectPORTC 0b00111111
+checkResult
+
+test "15, key, seated and fastened"
+setPINA 0x7F
+continue 18
+expectPORTC 0b00111111
+checkResult
+
+test "9, no key, seated and fastened"
+setPINA 0x69
+continue 18
+expectPORTC 0b00111100
+checkResult
+
+test "15, key, seated and not fastened"
+setPINA 0x3F
+continue 18
+expectPORTC 0b10111111
 checkResult
 
 

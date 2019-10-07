@@ -15,10 +15,15 @@
 int main(void) {
 	DDRA = 0x00; PORTA = 0xFF; //port a = inputs
 	DDRC = 0xFF; PORTC = 0x00; //port c = output 
-	unsigned char a = 0x00;
+	unsigned char a =0x00;
+	unsigned char a4 = 0x00;
+	unsigned char a5 = 0x00;
+	unsigned char a6 = 0x00;
 
        while (1) {
-		
+		a4 = (PINA & 0x10) >> 4;
+		a5 = (PINA & 0x20) >>5;
+		a6 = (PINA & 0x30) >>6;
 		a = PINA ; //a = input a
 		unsigned char fourLess = 0x00;
 	       	unsigned char output = 0x00;
@@ -46,6 +51,11 @@ int main(void) {
 		if(fourLess){
 			output = output | 0x40;
 		}	
+
+		if( a4 && a5 && !a6){
+			output = output | 0x80;
+		}
+
 		PORTC = output;
     }
     

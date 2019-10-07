@@ -108,13 +108,13 @@ expectPORTC 0b00111111
 checkResult
 
 test "14"
-setPINA 0x0D
+setPINA 0x0E
 continue 18
 expectPORTC 0b00111111
 checkResult
 
 test "15"
-setPINA 0x0D
+setPINA 0x0F
 continue 18
 expectPORTC 0b00111111
 checkResult

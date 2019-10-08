@@ -31,27 +31,47 @@ echo Running all tests..."\n\n
 # upper into lower b
 # lower into upper c
 
-test "1111 1111"
-setPINA 0xFF
+test "100 lb"
+setPIND 0b110010
+setPINB 0x00
 continue 18
-expectPORTC 0b11110000
-expectPORTB 0b00001111
+expectPORTB 0b0010
 checkResult
 
-test "1001 1111"
-setPINA 0x9F
+test "70 lb"
+setPIND 0b100011
+set PINB 0x00
 continue 18
-expectPORTC 0b11110000
-expectPORTB 0b00001001
+expectPORTB 0b0010
 checkResult
 
-test "1001 0000"
-setPINA 0x90
+test "69 lb"
+setPIND 0b100010
+set PINB 0x01
 continue 18
-expectPORTC 0b00000000
-expectPORTB 0b00001001
+expectPORTB 0b0100
 checkResult
 
+test "6 lb"
+setPIND 0b000011
+set PINB 0x00
+continue 18
+expectPORTB 0b0100
+checkResult
+
+test "5 lb"
+setPIND 0b00010
+set PINB 0x01
+continue 18
+expectPORTB 0b0000
+checkResult
+
+test "1 lb"
+setPIND 0b00000
+set PINB 0x01
+continue 18
+expectPORTB 0b0000
+checkResult
 
 
 # Report on how many tests passed/tests ran

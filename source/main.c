@@ -20,18 +20,24 @@
 #endif
 
 int main(void) {
-	DDRD = 0x00; PORTD = 0xFF; //port a = inputs 
-	DDRB = 0xFE; PORTB = 0x01; //port b = output 
+	DDRB = 0xFE; PORTB = 0x01; //port b00 = inputs 
+	DDRD = 0x00; PORTD = 0xFF; //port b = output 
 
-	unsigned char aIntoB =0x00;
-	unsigned char aIntoC =0x00;
+	unsigned char b0  =0x00;
+	unsigned short d  =0x00;
 
 	while (1) {
-			aIntoC = (PINA & 0b00001111) << 4;
-			aIntoB = (PINA & 0b11110000) >> 4;
-			
-			PORTC = aIntoC;
-			PORTB = aIntoB;
+			b0 = PINB & 0x01;
+			d = PIND << 1 ;
+			unsigned short weight = b0 + d;  
+			unsigned char output = 0x00;	
+			if(weight >= 70){
+				output = output | 0x02;
+			}
+			else if (weight > 5 && weight < 70){
+				output = output | 0x04;
+			}
+			PORTB = output;
 	}
     
     return 0;

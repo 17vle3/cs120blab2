@@ -10,10 +10,10 @@
 #include "simAVRHeader.h"
 #endif
 
-typedef enum States{start, next, add, sub, reset, release } States;
+typedef enum States{start, one , two , unlock, waitzero, lock } States;
 
 int main(void) {
-	DDRC = 0xFF; PORTC = 0x00; //port b00 = inputs 
+	DDRB = 0xFF; PORTB = 0x00; //port b00 = inputs 
 	DDRA = 0x00; PORTA = 0xFF; //port b = output 
 
 	States state = start;
@@ -26,49 +26,53 @@ int main(void) {
     return 0;
 }
 int stateUpdate(int state){
-	static unsigned char c;
-	unsigned char a0 = PINA & 0x01;
-	unsigned char a1 = (PINA & 0x02) >> 1;
-	unsigned char both = (a0 && a1);
+	static unsigned char b =0x00;
+	unsigned char x = PINA & 0x01;
+	unsigned char y = (PINA & 0x02) >> 1;
+	unsigned char num = (PINA & 0x04) >> 2;
+	unsigned char a7 = (PINA & 0x40) >> 7;
 	unsigned char zero = (PINA == 0x00);
 	
 	switch (state) { //transitions
 		case start:
-			c=0x07;
-			state =  next;
+			state = num ? one : start;
 			break;
-		case next:
-			if(a1 && a0){
-				state = reset;
+		case one:
+			if(num){
+				state = one;
 			}
-			else if (a0){
-				state = add;
-			}
-			else if (a1){
-				state = sub;
+			else if (zero){
+				state = two;
 			}
 			else{
-				state = next;
+				state = start;
 			}
 			break;
-		case add:
-			state = release;
-			break;
-		case sub:
-			state = release;
-			break;
-		case reset:
-			state = release;
-			break;
-		case release:
+		case two:
 			if(zero){
-				state = next;
+				state = two;
 			}
-			else if(a0 && a1){
-				state = reset;
+			else if (y){
+				state = unlock;
 			}
 			else{
-				state = release;
+				state = start;
+			}
+			break;
+		case unlock:
+			if(zero){
+				state = waitzero;
+			}
+			else{
+				state = unlock;
+			}
+			break;
+		case waitzero:
+			if(a7){
+				state = start;
+			}
+			else{
+				state = waitzero;
 			}
 			break;
 		default:
@@ -78,33 +82,26 @@ int stateUpdate(int state){
 	
 	switch (state) { //c output
 		case start:
+			b=0;
 			break;
-		case next:
+		case one:
 			break;
-		case add:
-			if(c < 0x09){
-				c = c + 0x01;
-			}
+		case two:
 			break;
-		case sub:
-			if(c >= 0x00){
-				c= c - 0x01;
-			}
+		case unlock:
+			b=1;
 			break;
-		case reset:
-			c=0x00;
-			break;
-		case release:
+		case waitzero:
+			b=1;
 			break;
 		default:
-			state = state;
 			break;
 	}
 			
 	
 			
 	
-	PORTC = c;
+	PORTB = b;
 	return state;
 	
 }

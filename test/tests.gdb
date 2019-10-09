@@ -35,115 +35,46 @@ test "nothing pressed"
 set state = start
 setPINA 0x00
 continue 18
-expectPORTC 0x07
-expect state next
+expectPORTB 0x00
+expect state start
 checkResult
 
-test "a0 pressed"
-set state = start
-setPINA 0x01
-continue 18
-expectPORTC 0x08
-expect state release
-checkResult
-
-test "a0 press then release"
+test "hold hashtag"
 set state = start
 setPINA 0x00
 continue 18
-setPINA 0x01
+setPINA 0x04
 continue 18
-setPINA 0x00
-continue 30
-expectPORTC 0x08
-expect state next
+expectPORTB 0x00
+expect state one
 checkResult
 
-test "a1 pressed"
+test "hold release hashtag"
 set state = start
 setPINA 0x00
 continue 18
-setPINA 0x02
+setPINA 0x04
 continue 18
-expectPORTC 0x06
-expect state release
+setPINA 0x00
+continue 18
+expectPORTB 0x00
+expect state two
 checkResult
 
-test "a1 press then release"
+test "hold release hashtag then y"
 set state = start
 setPINA 0x00
 continue 18
-setPINA 0x02
-continue 18
-setPINA 0x00
-continue 30
-expectPORTC 0x06
-expect state next
-checkResult
-
-test "a=3"
-set state = start
-setPINA 0x00
-continue 18
-setPINA 0x03
-continue 18
-expectPORTC 0x00
-expect state release
-checkResult
-
-test "a=1 then 3"
-set state = start
-setPINA 0x00
-continue 18
-setPINA 0x01
-continue 18
-setPINA 0x03
-continue 18
-expectPORTC 0x00
-expect state release
-checkResult
-
-test "a=2 then 3"
-set state = start
-setPINA 0x00
-continue 18
-setPINA 0x02
-continue 18
-setPINA 0x03
-continue 18
-expectPORTC 0x00
-expect state release
-checkResult
-
-test "add to 10"
-set state = start
-setPINA 0x00 
-continue 18
-setPINA 0x01
+setPINA 0x04
 continue 18
 setPINA 0x00
 continue 18
 setPINA 0x01
 continue 18
-setPINA 0x00
-continue 18
-setPINA 0x01
-continue 18
-expectPORTC 0x09
-expect state release
+expectPORTB 0x01
+expect state unlock
 checkResult
 
-test "make 0 then -1 check if == 0"
-set state = start
-setPINA 0x00 
-continue 18
-setPINA 0x03
-continue 18
-setPINA 0x02
-continue 18
-expectPORTC 0x00
-expect state release
-checkResult
 
 # Report on how many tests passed/tests ran
 set $passed=$tests-$failed

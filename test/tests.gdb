@@ -31,48 +31,12 @@ echo Running all tests..."\n\n
 # upper into lower b
 # lower into upper c
 
-test "one press"
-set state = releaseoff
+test "press add"
+set state = start
 setPINA 0x01
-continue 18
-expectPORTB 0x02
-expect state presson
-checkResult
-
-test "two press"
-set state = releaseoff
-setPINA 0x01
-continue 18
-setPINA 0x00
-continue 18
-setPINA 0x01
-continue 18
-expectPORTB 0x01
-expect state pressoff
-checkResult
-
-test "press then release"
-set state = releaseoff
-setPINA 0x01
-continue 18
-setPINA 0x00
-continue 18
-expectPORTB 0x02
-expect state releaseon
-checkResult
-
-test "two press then release"
-set state = releaseoff
-setPINA 0x01
-continue 18
-setPINA 0x00
-continue 18
-setPINA 0x01
-continue 18
-setPINA 0x00
-continue 18
-expectPORTB 0x01
-expect state releaseoff
+continue 30
+expectPORTC 0x08
+expect state pone
 checkResult
 
 

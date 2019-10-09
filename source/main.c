@@ -10,13 +10,13 @@
 #include "simAVRHeader.h"
 #endif
 
-typedef enum States{releaseoff, presson, releaseon, pressoff } States;
+typedef enum States{start, next, pone , sone, reset } States;
 
 int main(void) {
-	DDRB = 0xFF; PORTB = 0x00; //port b00 = inputs 
+	DDRC = 0xFF; PORTC = 0x00; //port b00 = inputs 
 	DDRA = 0x00; PORTA = 0xFF; //port b = output 
 
-	States state = releaseoff;
+	States state = start;
 	while (1) {
 			state = stateUpdate(state);
 			
@@ -25,42 +25,80 @@ int main(void) {
     return 0;
 }
 int stateUpdate(int state){
-	static unsigned char b;
-	unsigned char button = PINA & 0x01;
+	static unsigned char c;
+	unsigned char add = PINA & 0x01;
+	unsigned char minus = (PINA & 0x02) >> 1;
+	unsigned char both = (PINA == 0x03);
 	switch (state) { //transitions
-		case releaseoff:
-			state =  button ? presson : releaseoff;
+		case start:
+			state =  next;
 			break;
-		case presson:
-			state = !button ? releaseon : presson;
+		case next:
+			if(both){
+				state = reset;
+			}
+			else if (add){
+				state = pone;
+			}
+			else if (minus){
+				state = sone;
+			}
+			else{
+				state = next;
+			}
 			break;
-		case releaseon:
-			state = button ? pressoff : releaseon;
+		case pone:
+			if(both){
+				state = reset;
+			}
+			else if(!add && !minus){
+				state = next;
+			}
+			else{
+				
+			}
 			break;
-		case pressoff:
-			state = !button ? releaseoff : pressoff;
+		case sone:
+			if(both){
+				state = reset;
+			}
+			else if(!add && !minus){
+				state = next;
+			}
 			break;
+		case reset:
+			if(!add && !minus){
+				state = next;
+			}
+			break;
+		
 		default:
-			state = releaseoff;
+			state = next;
 			break;
 			
 		
 	}
 	switch (state) { //actions
-		case releaseoff:
-			b=0x01;
+		case start:
+			c=0x07;
 			break;
-		case presson:
-			b=0x02;
+		case pone:
+			if(c<9){
+				c=c+1;
+			}
 			break;
-		case releaseon:
-			b=0x02;
+		case sone:
+			if(c>0){
+				c=c-1;
+			}
 			break;
-		case pressoff:
-			b=0x01;
+		case reset:
+			c=0x00;
+			break;
+		case next:
 			break;
 	}
-	PORTB = b;
+	PORTC = c;
 	return state;
 	
 }

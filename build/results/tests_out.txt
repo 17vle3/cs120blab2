@@ -3,10 +3,5 @@ Note: automatically using hardware breakpoints for read-only addresses.
 ======================================================
 Running all tests..."
 
-"nothing pressed"..."hold hashtag"..."hold x"..."hold release hashtag"..."hold release hashtag then x"..."hold release hashtag then y"..."hold release hashtag then y then release"..."unlocked -> lock via code"..."2unlocked -> lock via code"...
-	Expected waita7 but got state:0
-	Expected 0x00 
-	PORTB '0x800025:	0x01
-
-	Expected start but got state:5======================================================
+"nothing pressed"..."hold hashtag"..."hold x"..."hold release hashtag"..."hold release hashtag then x"..."hold release hashtag then y"..."hold release hashtag then y then release"..."unlocked -> lock via code"..."unlock -> waitzero -> start"...======================================================
 Quitting: Remote doesn't know how to detach

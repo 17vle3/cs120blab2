@@ -47,11 +47,71 @@ expectPORTC 0x08
 expect state release
 checkResult
 
+test "a0 press then release"
+set state = start
+setPINA 0x00
+continue 18
+setPINA 0x01
+continue 18
+setPINA 0x00
+continue 18
+expectPORTC 0x08
+expect state next
+checkResult
+
 test "a1 pressed"
 set state = start
+setPINA 0x00
+continue 18
 setPINA 0x02
 continue 18
 expectPORTC 0x06
+expect state release
+checkResult
+
+test "a1 press then release"
+set state = start
+setPINA 0x00
+continue 18
+setPINA 0x02
+continue 18
+setPINA 0x00
+continue 18
+expectPORTC 0x06
+expect state next
+checkResult
+
+test "a=3"
+set state = start
+setPINA 0x00
+continue 18
+setPINA 0x03
+continue 18
+expectPORTC 0x00
+expect state release
+checkResult
+
+test "a=1 then 3"
+set state = start
+setPINA 0x00
+continue 18
+setPINA 0x01
+continue 18
+setPINA 0x03
+continue 18
+expectPORTC 0x00
+expect state release
+checkResult
+
+test "a=2 then 3"
+set state = start
+setPINA 0x00
+continue 18
+setPINA 0x02
+continue 18
+setPINA 0x03
+continue 18
+expectPORTC 0x00
 expect state release
 checkResult
 

@@ -29,7 +29,7 @@ int stateUpdate(int state){
 	static unsigned char c;
 	unsigned char a0 = PINA & 0x01;
 	unsigned char a1 = (PINA & 0x02) >> 1;
-	unsigned char both = (a0 & a1);
+	unsigned char both = (a0 && a1);
 	
 	switch (state) { //transitions
 		case start:
@@ -51,33 +51,26 @@ int stateUpdate(int state){
 			}
 			break;
 		case add:
-			if(!both){
-				state = release;
-			}
-			else {
-				state = reset;
-			}
+			state = release;
 			break;
 		case sub:
-			if(both){
-				state = reset;
-			}
-			else {
-				state = release;
-			}
+			state = release;
 			break;
 		case reset:
 			state = release;
 			break;
 		case release:
-			if(!a0 && !a1){
+			if(!(a0 && a1)){
 				state = next;
+			}
+			if(a0 && a1){
+				state = reset;
 			}
 			else{
 				state = release;
 			}
 		default:
-			state = next;
+			state = state;
 			break;
 	}
 			
@@ -99,8 +92,10 @@ int stateUpdate(int state){
 			c=0x00;
 			break;
 		case next:
+			c=c;
 			break;
 		case release:
+			c=c;
 			break;
 		default:
 			break;

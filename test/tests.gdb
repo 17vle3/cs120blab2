@@ -31,46 +31,11 @@ echo Running all tests..."\n\n
 # upper into lower b
 # lower into upper c
 
-test "100 lb"
-setPIND 0b110010
-setPINB 0x00
+test "one press"
+setPINA 0x01
 continue 18
-expectPORTB 0b0010
-checkResult
-
-test "70 lb"
-setPIND 0b100011
-setPINB 0x00
-continue 18
-expectPORTB 0b0010
-checkResult
-
-test "69 lb"
-setPIND 0b100010
-setPINB 0x01
-continue 18
-expectPORTB 0b0100
-checkResult
-
-test "6 lb"
-setPIND 0b000011
-setPINB 0x00
-continue 18
-expectPORTB 0b0100
-checkResult
-
-test "5 lb"
-setPIND 0b00010
-setPINB 0x01
-continue 18
-expectPORTB 0b0000
-checkResult
-
-test "1 lb"
-setPIND 0b00000
-set PINB 0x01
-continue 18
-expectPORTB 0b0000
+expectPORTB 0x02
+expect state presson
 checkResult
 
 

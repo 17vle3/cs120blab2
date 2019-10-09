@@ -1,15 +1,6 @@
 /*	Author: vle018
  *  Partner(s) Name: Mari Hayashi
  *	Lab Section:
-
- *	Exercise Description: A car's passenger-seat weight sensor outputs a 9-bit value (ranging from 0 to 511) 
- * and connects to input PD7..PD0PB0 on the microcontroller. 
- * If the weight is equal to or above 70 pounds,
- *  the airbag should be enabled by setting PB1 to 1. 
- * If the weight is above 5 but below 70, the airbag 
- * should be disabled and an "Airbag disabled" icon should light by 
- * setting PB2 to 1. (Neither B1 nor B2 should be set if the weight 
- * is 5 or less, as there is no passenger).
  *
  *	I acknowledge all content contained herein, excluding template or example
  *	code, is my own original work.
@@ -19,27 +10,58 @@
 #include "simAVRHeader.h"
 #endif
 
+typedef enum States{releaseoff, presson, releaseon, pressoff } States;
+
 int main(void) {
-	DDRB = 0xFE; PORTB = 0x01; //port b00 = inputs 
-	DDRD = 0x00; PORTD = 0xFF; //port b = output 
+	DDRB = 0xFF; PORTB = 0x00; //port b00 = inputs 
+	DDRA = 0x00; PORTA = 0xFF; //port b = output 
 
-	unsigned char b0  =0x00;
-	unsigned short d  =0x00;
-
+	States state = releaseoff;
 	while (1) {
-			b0 = PINB & 0x01;
-			d = PIND << 1 ;
-			unsigned short weight = b0 + d;  
-			unsigned char output = 0x00;	
-			if(weight >= 70){
-				output = output | 0x02;
-			}
-			else if (weight > 5 && weight < 70){
-				output = output | 0x04;
-			}
-			PORTB = output;
+			state = stateUpdate(state);
+			
 	}
     
     return 0;
+}
+int stateUpdate(int state){
+	static unsigned char b;
+	unsigned char button = PINA & 0x01;
+	switch (state) { //transitions
+		case releaseoff:
+			if(button) ? state = presson; : state = releaseoff;
+			break;
+		case presson:
+			if(!button) ? state = releaseon; : state = presson;
+			break;
+		case releaseon:
+			if(button) ? state = pressoff; : state = releaseon;
+			break;
+		case pressoff:
+			if(!button) ? state = releaseoff; : state = pressoff;
+			break;
+		default:
+			state = releaseoff;
+			break;
+			
+		
+	}
+	switch (state) { //actions
+		case releaseoff:
+			b=0x01;
+			break;
+		case presson:
+			b=0x02;
+			break;
+		case releaseon:
+			b=0x02
+			break;
+		case pressoff:
+			b=0x01
+			break;
+	}
+	PORTB = b;
+	return state;
+	
 }
 

@@ -10,7 +10,7 @@
 #include "simAVRHeader.h"
 #endif
 
-typedef enum States{start, next, pone , sone, reset } States;
+typedef enum States{start, next, pone, sone, reset, release } States;
 
 int main(void) {
 	DDRC = 0xFF; PORTC = 0x00; //port b00 = inputs 
@@ -26,9 +26,8 @@ int main(void) {
 }
 int stateUpdate(int state){
 	static unsigned char c;
-	unsigned char add = PINA & 0x01;
-	unsigned char minus = (PINA & 0x02) >> 1;
-	unsigned char both = (PINA == 0x03);
+	unsigned char a0 = PINA & 0x01;
+	unsigned char a1 = (PINA & 0x02) >> 1;
 	switch (state) { //transitions
 		case start:
 			state =  next;
@@ -51,27 +50,28 @@ int stateUpdate(int state){
 			if(both){
 				state = reset;
 			}
-			else if(!add && !minus){
-				state = next;
-			}
-			else{
-				
+			else {
+				state = release;
 			}
 			break;
 		case sone:
 			if(both){
 				state = reset;
 			}
-			else if(!add && !minus){
-				state = next;
+			else {
+				state = release;
 			}
 			break;
 		case reset:
+			state = release;
+			break;
+		case release:
 			if(!add && !minus){
 				state = next;
 			}
-			break;
-		
+			else{
+				state = release;
+			}
 		default:
 			state = next;
 			break;
@@ -83,19 +83,24 @@ int stateUpdate(int state){
 			c=0x07;
 			break;
 		case pone:
-			if(c<9){
-				c=c+1;
+			if(c< 0x09){
+				c=c+ 0x01;
 			}
 			break;
 		case sone:
-			if(c>0){
-				c=c-1;
+			if(c>0x00){
+				c= c - 0x01;
 			}
 			break;
 		case reset:
 			c=0x00;
 			break;
 		case next:
+			c=c;
+			break;
+		case release:
+			break;
+		default:
 			break;
 	}
 	PORTC = c;

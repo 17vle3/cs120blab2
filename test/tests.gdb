@@ -31,12 +31,12 @@ echo Running all tests..."\n\n
 # upper into lower b
 # lower into upper c
 
-test "press add"
+test "nothing pressed"
 set state = start
-setPINA 0x01
-continue 30
-expectPORTC 0x08
-expect state pone
+setPINA 0x00
+continue 18
+expectPORTC 0x07
+expect state release
 checkResult
 
 

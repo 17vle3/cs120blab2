@@ -47,6 +47,13 @@ expectPORTC 0x08
 expect state release
 checkResult
 
+test "a1 pressed"
+set state = start
+setPINA 0x02
+continue 18
+expectPORTC 0x06
+expect state release
+checkResult
 
 # Report on how many tests passed/tests ran
 set $passed=$tests-$failed

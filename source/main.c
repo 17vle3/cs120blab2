@@ -91,7 +91,7 @@ int stateUpdate(int state){
 			}
 			break;
 		case sub:
-			if(c>0x00){
+			if(c >= 0x01){
 				c= c - 0x01;
 			}
 			break;

@@ -1,11 +1,10 @@
-Breakpoint 1 at 0x1c8: file source/main.c, line 20.
+Breakpoint 1 at 0x1ce: file source/main.c, line 20.
 Note: automatically using hardware breakpoints for read-only addresses.
 ======================================================
 Running all tests..."
 
-"nothing pressed"...
-	Expected 0x07 
-	PORTC '0x800028:	0x00
-
-	Expected release but got state:1======================================================
+"nothing pressed"..."a0 pressed"...
+	Expected 0x08 
+	PORTC '0x800028:	0x09
+======================================================
 Quitting: Remote doesn't know how to detach

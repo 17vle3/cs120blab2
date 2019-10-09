@@ -36,6 +36,14 @@ set state = start
 setPINA 0x00
 continue 18
 expectPORTC 0x07
+expect state next
+checkResult
+
+test "a0 pressed"
+set state = start
+setPINA 0x01
+continue 18
+expectPORTC 0x08
 expect state release
 checkResult
 

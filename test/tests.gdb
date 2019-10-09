@@ -81,7 +81,7 @@ setPINA 0x00
 continue 18
 setPINA 0x01
 continue 18
-expectPORTB 0x01
+expectPORTB 0x00
 expect state start
 checkResult
 
@@ -96,7 +96,7 @@ continue 18
 setPINA 0x02
 continue 18
 expectPORTB 0x01
-expect state unlock
+expect state waita7
 checkResult
 
 test "hold release hashtag then y then release"
@@ -112,27 +112,44 @@ continue 18
 setPINA 0x00
 continue 18
 expectPORTB 0x01
+expect state waita7
+checkResult
+
+test "unlocked -> lock via code"
+set state = unlock
+setPINA 0x00
+continue 18
+expect state waita7
+setPINA 0x04
+continue 18
+expect state one
+setPINA 0x00
+continue 18
+expect state two
+setPINA 0x02
+continue 18
+expectPORTB 0x00
 expect state waitzero
 checkResult
 
-test "hold release hashtag then y then release"
-set state = start
+test "unlock -> waitzero -> start"
+set state = unlock
 setPINA 0x00
 continue 18
+expect state waita7
 setPINA 0x04
 continue 18
+expect state one
 setPINA 0x00
 continue 18
+expect state two
 setPINA 0x02
 continue 18
 setPINA 0x00
 continue 18
-setPINA 0x80
-continue 18
 expectPORTB 0x00
 expect state start
 checkResult
-
 
 # Report on how many tests passed/tests ran
 set $passed=$tests-$failed

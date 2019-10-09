@@ -1,8 +1,7 @@
-Breakpoint 1 at 0xee: file source/main.c, line 29.
+Breakpoint 1 at 0x18e: file source/main.c, line 20.
 Note: automatically using hardware breakpoints for read-only addresses.
 ======================================================
 Running all tests..."
 
-"100 lb"..."70 lb"..."69 lb"..."6 lb"..."5 lb"..."1 lb"...test/tests.gdb:71: Error in sourced command file:
-No symbol "PINB" in current context.
+"one press"..."two press"..."press then release"..."two press then release"...======================================================
 Quitting: Remote doesn't know how to detach

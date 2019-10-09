@@ -54,7 +54,7 @@ continue 18
 setPINA 0x01
 continue 18
 setPINA 0x00
-continue 18
+continue 30
 expectPORTC 0x08
 expect state next
 checkResult
@@ -76,7 +76,7 @@ continue 18
 setPINA 0x02
 continue 18
 setPINA 0x00
-continue 18
+continue 30
 expectPORTC 0x06
 expect state next
 checkResult
@@ -110,6 +110,36 @@ continue 18
 setPINA 0x02
 continue 18
 setPINA 0x03
+continue 18
+expectPORTC 0x00
+expect state release
+checkResult
+
+test "add to 10"
+set state = start
+setPINA 0x00 
+continue 18
+setPINA 0x01
+continue 18
+setPINA 0x00
+continue 18
+setPINA 0x01
+continue 18
+setPINA 0x00
+continue 18
+setPINA 0x01
+continue 18
+expectPORTC 0x09
+expect state release
+checkResult
+
+test "make 0 then -1 check if == 0"
+set state = start
+setPINA 0x00 
+continue 18
+setPINA 0x03
+continue 18
+setPINA 0x02
 continue 18
 expectPORTC 0x00
 expect state release

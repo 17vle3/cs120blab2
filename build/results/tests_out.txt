@@ -1,9 +1,7 @@
-Breakpoint 1 at 0x1c8: file source/main.c, line 20.
+Breakpoint 1 at 0x1b0: file source/main.c, line 20.
 Note: automatically using hardware breakpoints for read-only addresses.
 ======================================================
 Running all tests..."
 
-"nothing pressed"..."a0 pressed"..."a0 press then release"...
-	Expected next but got state:5"a1 pressed"..."a1 press then release"...
-	Expected next but got state:5"a=3"..."a=1 then 3"..."a=2 then 3"...======================================================
+"nothing pressed"..."a0 pressed"..."a0 press then release"..."a1 pressed"..."a1 press then release"..."a=3"..."a=1 then 3"..."a=2 then 3"..."add to 10"..."make 0 then -1 check if == 0"...======================================================
 Quitting: Remote doesn't know how to detach

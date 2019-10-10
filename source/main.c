@@ -10,7 +10,7 @@
 #include "simAVRHeader.h"
 #endif
 
-typedef enum States{start, sequence, unlock, waitzero, waita7 } States;
+typedef enum States{start, sequence, sequencewaitzero, sequencewaitinput, unlock, waitzero, waita7 } States;
 
 int main(void) {
 	DDRB = 0xFF; PORTB = 0x00; //port b00 = inputs 
@@ -32,26 +32,42 @@ int stateUpdate(int state){
 	unsigned char num = (PINA & 0x04) >> 2;
 	unsigned char a7 = (PINA & 0x80) >> 7;
 	unsigned char zero = (PINA == 0x00);
-	
+	static unsigned char count = 0x00;
+	unsigned char arr[6] = {0x01,0x02,0x01};
+	static unsigned int index = 0x00;
 	switch (state) { //transitions
 		case start:
-			state = num ? sequence : start;
+			state = num ? sequencewaitzero : start;
 			break;
+			
+		case sequencewaitinput:
+			if(zero){
+				state = sequencewaitinput; break;
+			}
 		case sequence:
-			unsigned char count = 0x00;
-			unsigned char arr[3] = {0x01,0x02,0x01};
-			unsigned int i;
-			for(i = 0; i < 3; i++){
-				if(PINA == arr[i]){
+			if(index < 6){
+				if(PINA == arr[index]){
 					count = count + 1;
-					state = stateUpdate(state);
+				}
+				if(index == 5 && count == 6){
+					state = unlock; 
+				}
+				else if(index == 5){
+					index = 0;
+					state = start;
+				}
+				else{
+					index = index +1;
+					state = sequencewaitzero; 
 				}
 			}
-			if(count == 0x03){
-				state = unlock;	
+			break;
+		case sequencewaitzero:
+			if(PINA == 0x00){
+				state = sequencewaitinput;
 			}
 			else{
-				state = start;	
+				state = sequencewaitzero;
 			}
 			break;
 		case unlock:
@@ -67,7 +83,7 @@ int stateUpdate(int state){
 				state = waitzero;
 			}
 			else if(num){
-				state = one;
+				state = sequence;
 			}
 			else{
 				state = waita7;
@@ -87,7 +103,7 @@ int stateUpdate(int state){
 	
 	switch (state) { //c output
 		case start:
-			b=0;
+			//b=0;
 			break;
 		case sequence:
 			break;

@@ -31,134 +31,19 @@ echo Running all tests..."\n\n
 # upper into lower b
 # lower into upper c
 
-test "nothing pressed"
+test "goes to start"
 set state = start
 setPINA 0x00
 continue 18
+setPINA 0x04
+continue 18
+expect state sequencewaitzero
+setPINA 0x00
+continue 18
+expect state sequencewaitinput
 expectPORTB 0x00
-expect state start
 checkResult
 
-test "hold hashtag"
-set state = start
-setPINA 0x00
-continue 18
-setPINA 0x04
-continue 18
-expectPORTB 0x00
-expect state one
-checkResult
-
-test "hold x"
-set state = start
-setPINA 0x00
-continue 18
-setPINA 0x01
-continue 18
-expectPORTB 0x00
-expect state start
-checkResult
-
-test "hold release hashtag"
-set state = start
-setPINA 0x00
-continue 18
-setPINA 0x04
-continue 18
-setPINA 0x00
-continue 18
-expectPORTB 0x00
-expect state two
-checkResult
-
-test "hold release hashtag then x"
-set state = start
-setPINA 0x00
-continue 18
-setPINA 0x04
-continue 18
-setPINA 0x00
-continue 18
-setPINA 0x01
-continue 18
-expectPORTB 0x00
-expect state start
-checkResult
-
-test "hold release hashtag then y"
-set state = start
-setPINA 0x00
-continue 18
-setPINA 0x04
-continue 18
-setPINA 0x00
-continue 18
-setPINA 0x02
-continue 18
-expectPORTB 0x01
-expect state waita7
-checkResult
-
-test "hold release hashtag then y then release"
-set state = start
-setPINA 0x00
-continue 18
-setPINA 0x04
-continue 18
-setPINA 0x00
-continue 18
-setPINA 0x02
-continue 18
-setPINA 0x00
-continue 18
-expectPORTB 0x01
-expect state waita7
-checkResult
-
-test "unlocked -> lock via code"
-set state = unlock
-setPINA 0x00
-continue 18
-expect state waita7
-setPINA 0x04
-continue 18
-expect state one
-setPINA 0x00
-continue 18
-expect state two
-setPINA 0x02
-continue 18
-expectPORTB 0x00
-expect state waitzero
-checkResult
-
-test "unlock -> waitzero -> start"
-set state = start
-setPINA 0x00
-continue 18
-setPINA 0x04
-continue 18
-setPINA 0x00
-continue 18
-setPINA 0x02
-continue 18
-setPINA 0x00
-continue 18
-expect state waita7
-setPINA 0x04
-continue 18
-expect state one
-setPINA 0x00
-continue 18
-expect state two
-setPINA 0x02
-continue 18
-expect state waitzero
-setPINA 0x00
-continue 18
-expectPORTB 0x00
-expect state start
-checkResult
 
 # Report on how many tests passed/tests ran
 set $passed=$tests-$failed

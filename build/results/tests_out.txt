@@ -1,7 +1,7 @@
-Breakpoint 1 at 0x1d8: file source/main.c, line 20.
+Breakpoint 1 at 0x242: file source/main.c, line 20.
 Note: automatically using hardware breakpoints for read-only addresses.
 ======================================================
 Running all tests..."
 
-"nothing pressed"..."hold hashtag"..."hold x"..."hold release hashtag"..."hold release hashtag then x"..."hold release hashtag then y"..."hold release hashtag then y then release"..."unlocked -> lock via code"..."unlock -> waitzero -> start"...======================================================
+"goes to start"...======================================================
 Quitting: Remote doesn't know how to detach

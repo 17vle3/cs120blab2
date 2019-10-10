@@ -39,10 +39,19 @@ int stateUpdate(int state){
 			break;
 		case sequence:
 			unsigned char count = 0x00;
-			unsigned char arr[3] = {x,y,x};
+			unsigned char arr[3] = {0x01,0x02,0x01};
 			unsigned int i;
 			for(i = 0; i < 3; i++){
-				state = stateUpdate(state);
+				if(PINA == arr[i]){
+					count = count + 1;
+					state = stateUpdate(state);
+				}
+			}
+			if(count == 0x03){
+				state = unlock;	
+			}
+			else{
+				state = start;	
 			}
 			break;
 		case unlock:
@@ -80,9 +89,7 @@ int stateUpdate(int state){
 		case start:
 			b=0;
 			break;
-		case one:
-			break;
-		case two:
+		case sequence:
 			break;
 		case unlock:
 			if(b == 0x00){

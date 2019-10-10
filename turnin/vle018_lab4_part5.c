@@ -106,7 +106,7 @@ int stateUpdate(int state){
 	
 	switch (state) { //c output
 		case start:
-			//b=0;
+			b=0;
 			break;
 		case sequence:
 			break;

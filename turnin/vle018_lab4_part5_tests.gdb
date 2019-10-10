@@ -53,7 +53,12 @@ setPINA 0x01
 continue 18
 expect state waita7
 expectPORTB 0x01
-#first unlock
+checkResult
+
+test "unlock then lock w code"
+set state = start
+setPINA 0x00
+continue 18
 setPINA 0x04
 continue 18
 expect state sequencewaitzero
@@ -70,9 +75,51 @@ setPINA 0x00
 continue 18
 setPINA 0x01
 continue 18
+#first unlock
+setPINA 0x04
+continue 18
+setPINA 0x00
+continue 18
+setPINA 0x01
+continue 18
+setPINA 0x00
+continue 18
+setPINA 0x02
+continue 18
+setPINA 0x00
+continue 18
+setPINA 0x01
+continue 18
 expectPORTB 0x00
 checkResult
 
+test "unlock then lock w a7"
+set state = start
+setPINA 0x00
+continue 18
+setPINA 0x04
+continue 18
+expect state sequencewaitzero
+setPINA 0x00
+continue 18
+expect state sequencewaitinput
+setPINA 0x01
+continue 18
+setPINA 0x00
+continue 18
+setPINA 0x02
+continue 18
+setPINA 0x00
+continue 18
+setPINA 0x01
+continue 18
+setPINA 0x80
+continue 18
+setPINA 0x00
+continue 18
+expectPORTB 0x00
+
+checkResult
 
 
 # Report on how many tests passed/tests ran

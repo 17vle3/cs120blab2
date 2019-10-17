@@ -26,15 +26,16 @@ int main(void) {
     return 0;
 }
 int stateUpdate(int state){
-	static unsigned char c = 0x00;
-	unsigned char a0 = (~PINA & 0x0F) & 0x01;
-	unsigned char a1 = ((~PINA & 0x0F) & 0x02)>>1;
+	static unsigned char c;
+	unsigned char a0 = PINA & 0x01;
+	unsigned char a1 = (PINA & 0x02) >> 1;
 	unsigned char both = (a0 && a1);
-	unsigned char zero = !a0 && !a1;
+	unsigned char zero = (PINA == 0x00);
 	
 	switch (state) { //transitions
 		case start:
-			state = next;
+			c=0x07;
+			state =  next;
 			break;
 		case next:
 			if(a1 && a0){
@@ -60,7 +61,7 @@ int stateUpdate(int state){
 			state = release;
 			break;
 		case release:
-			if(a0 == 0x00 && a1 == 0x00){
+			if(zero){
 				state = next;
 			}
 			else if(a0 && a1){
@@ -71,6 +72,7 @@ int stateUpdate(int state){
 			}
 			break;
 		default:
+			state = state;
 			break;
 	}
 	
@@ -95,8 +97,13 @@ int stateUpdate(int state){
 		case release:
 			break;
 		default:
+			state = state;
 			break;
 	}
+			
+	
+			
+	
 	PORTC = c;
 	return state;
 	

@@ -1,10 +1,7 @@
-Breakpoint 1 at 0x178: file source/main.c, line 26.
+Breakpoint 1 at 0x19c: file source/main.c, line 26.
 Note: automatically using hardware breakpoints for read-only addresses.
 ======================================================
 Running all tests..."
 
-"nothing pressed"..."a0 pressed"...
-	Expected 0x02 
-	PORTB '0x800025:	0x00
-======================================================
+"nothing pressed"..."a0 pressed"...======================================================
 Quitting: Remote doesn't know how to detach

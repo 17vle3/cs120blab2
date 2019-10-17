@@ -35,119 +35,29 @@ test "nothing pressed"
 set state = start
 setPINA 0x0F
 continue 18
-expectPORTC 0x00
+expectPORTB 0x01
 expect state start
 checkResult
 
 test "a0 pressed"
 set state = start
+setPINA 0x0F
+continue 18
+expectPORTB 0x01
 setPINA 0x0E
 continue 18
-expectPORTC 0x01
-expect state waitzero
+expectPORTB 0x02
+expect state 3
+#setPINA 0x0F
+#continue 18
+#expectPORTB 0x02
+#expect state waitinput
+#setPINA 0x0E
+#continue 18
+#expectPORTB 0x04
 checkResult
 
-test "a0 press then release"
-setPINA 0x0E
-continue 18
-setPINA 0x0F
-continue 18
-expectPORTC 0x01
-expect state next
-checkResult
 
-test "a1 a1"
-set state = start
-setPINA 0x0D
-continue 18
-setPINA 0x0F
-continue 30
-setPINA 0x0D
-continue 18
-setPINA 0x0F
-continue 30
-expectPORTC 0x00
-checkResult
-
-test "a1 press then release"
-set state = start
-setPINA 0x0D
-continue 18
-setPINA 0x0F
-continue 30
-expectPORTC 0x00
-expect state next
-checkResult
-
-test "add 1 reset"
-setPINA 0x0E
-continue 18
-setPINA 0x0F
-continue 18
-setPINA 0x0C
-continue 18
-expectPORTC 0x00
-expect state waitzero
-checkResult
-
-test "add 2 reset"
-setPINA 0x0E
-continue 18
-setPINA 0x0F
-continue 18
-setPINA 0x0E
-continue 18
-setPINA 0x0F
-continue 18
-setPINA 0x0C
-continue 18
-expectPORTC 0x00
-expect state waitzero
-checkResult
-
-test "add to 10"
-setPINA 0x0E
-continue 18
-setPINA 0x0F 
-continue 18
-setPINA 0x0E
-continue 18
-setPINA 0x0F 
-continue 18
-setPINA 0x0E
-continue 18
-setPINA 0x0F 
-continue 18
-setPINA 0x0E
-continue 18
-setPINA 0x0F 
-continue 18
-setPINA 0x0E
-continue 18
-setPINA 0x0F 
-continue 18
-setPINA 0x0E
-continue 18
-setPINA 0x0F 
-continue 18
-setPINA 0x0E
-continue 18
-setPINA 0x0F 
-continue 18
-setPINA 0x0E
-continue 18
-setPINA 0x0F 
-continue 18
-setPINA 0x0E
-continue 18
-setPINA 0x0F 
-continue 18
-setPINA 0x0E
-continue 18
-setPINA 0x0F 
-continue 18
-expectPORTC 0x09
-checkResult
 
 
 

@@ -8,7 +8,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-typedef enum States{start, zero, one, two} States;
+typedef enum States{start, zero, one, two, zeropress, onepress, twopress, waitPress} States;
 volatile unsigned char TimerFlag = 0;
 
 unsigned long _avr_timer_M = 1;
@@ -41,10 +41,9 @@ void TimerSet (unsigned long M){
 }
 int main(void) {
 	DDRB = 0xFF; PORTB = 0x00; //port b00 = inputs 
-	//DDRA = 0x00; PORTA = 0xFF; //port b = output 
+	DDRA = 0x00; PORTA = 0xFF; //port b = output 
 	TimerSet(1000);
 	TimerOn();
-	unsigned char tmpB = 0x00;
 	
 	States state = start;
 	while (1) {
@@ -56,19 +55,55 @@ int main(void) {
     return 0;
 }
 int stateUpdate(int state){
+	unsigned char button = (~PINA & 0x0F) & 0x01;
 	static unsigned char b= 0x00;
 	switch (state) { //transitions
 		case start:
 			state = zero;
 			break;
 		case zero:
-			state = one;
+			if(!button){
+				state = one;
+			}
+			else{
+				state = zeropress;
+			}
 			break;
 		case one:
-			state = two;
+			if(!button){
+				state = two;
+			}
+			else{
+				state = onepress;
+			}
 			break;
 		case two:
-			state = zero;
+			if(!button){
+				state = zero;
+			}
+			else{
+				state = twopress;
+			}
+		case zeropress:
+			if(!button){
+				state = waitPress;
+			}
+			break;
+		case onepress:
+			if(!button){
+				state = waitPress;
+			}
+			break;
+		case twopress:
+			if(!button){
+				state = waitPress;
+			}
+			break;
+		case waitPress:
+			if(button){
+				state = start;
+			}
+			break;
 		default:
 			break;
 	}
@@ -79,10 +114,19 @@ int stateUpdate(int state){
 		case zero:
 			b = 0x01;
 			break;
+		case zeropress:
+			b = 0x01;
+			break;
 		case one:
 			b = 0x02;
 			break;
+		case onepress:
+			b = 0x02;
+			break;
 		case two:
+			b = 0x04;
+			break;
+		case twopress:
 			b = 0x04;
 			break;
 		default:

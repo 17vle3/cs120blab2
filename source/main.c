@@ -40,8 +40,11 @@ void TimerSet (unsigned long M){
 	_avr_timer_cntcurr = _avr_timer_M;
 }
 int main(void) {
-	DDRB = 0xFF; PORTB = 0x00; //port b00 = inputs 
+	DDRC = 0xFF; PORTC = 0x00;
+	DDRD = 0xFF; PORTD = 0x00; //port b00 = inputs 
 	DDRA = 0x00; PORTA = 0xFF; //port b = output 
+	
+	LCD_init();
 	TimerSet(1000);
 	TimerOn();
 	

@@ -7,7 +7,7 @@
  */
 #include <avr/io.h>
 #include <avr/interrupt.h>
-
+#include "io.h"
 typedef enum States{start, next, add, sub, reset, release} States;
 volatile unsigned char TimerFlag = 0;
 
@@ -65,7 +65,7 @@ int stateUpdate(int state){
 	static unsigned char b;
 	switch (state) { //transitions
 		case start:
-			b = 0x07;
+			b = 0x00;
 			state = next;
 			break;
 		case next:

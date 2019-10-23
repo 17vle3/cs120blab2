@@ -47,9 +47,10 @@ int main(void) {
 	LCD_init();
 	TimerSet(1000);
 	TimerOn();
-	
+	LCD_DisplayString(1, "Hello World");
 	States state = start;
 	while (1) {
+			
 			state = stateUpdate(state);
 			while(!TimerFlag);
 			TimerFlag =0;
@@ -137,7 +138,7 @@ int stateUpdate(int state){
 		default:
 			break;
 	}
-	PORTB = b;
+	LCD_WriteData( b + '0' );
 	return state;
 	
 }

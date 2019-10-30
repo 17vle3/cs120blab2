@@ -91,10 +91,15 @@ int stateUpdate(int state){
 	unsigned char a0 = (~PINA & 0x0F) & 0x01;
 	unsigned char a1 = ((~PINA & 0x0F) & 0x02)>>1;
 	unsigned char a2 = ((~PINA & 0x0F) & 0x04)>>2;	
-	unsigned char zero = ((~PINA & 0x0F) == 0x00);
-	double arr[8] = {261.63, 293.66, 329.63, 349.23, 392.00, 440.00,493.88, 523.25};
+	unsigned char zero = ((~PINA & 0x0F) == 0x00);                         //f c a# g d# f f d# f f g f d#
+	double arr[31] = {466.16,  466.16, 392.00, 523.25 , 392.00, 311.13, 349.23,//a# a# g c g d# f 6 
+		0, 349.23 , 311.13, 349.23, 311.13, 349.23, 0, 349.23, 0, //pause f 10
+		349.23,523.25,466.16, 392.00,311.13,   349.23, 0 , 349.23,311.13, 349.23, 0 , 349.23,392.00, 349.23, 311.13}; //15
+	double arr1[31] = {20,20,20,20,20,20,40,
+		1,20,20,40,20,40,1,40,1,
+		20,20,20,20,20,  40,1,20,20,20,1,20,20,20};
 	static unsigned char index=0;
-	static double freq=261.63;
+	static double freq=466.16;
 	switch (state) { //transitions
 		case start:
 			state = next;

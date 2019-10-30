@@ -8,7 +8,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "io.h"
-typedef enum States{start, next, add, sub, play, release} States;
+typedef enum States{start, play, done, waitRelease, waitPress, waitRelease2 } States;
 volatile unsigned char TimerFlag = 0;
 
 unsigned long _avr_timer_M = 1;
@@ -90,7 +90,8 @@ int main(void) {
 int stateUpdate(int state){
 	unsigned char a0 = (~PINA & 0x0F) & 0x01;
 	unsigned char a1 = ((~PINA & 0x0F) & 0x02)>>1;
-	unsigned char a2 = ((~PINA & 0x0F) & 0x04)>>2;	
+	unsigned char a2 = ((~PINA & 0x0F) & 0x04)>>2;
+	static unsigned char time = 0x00;
 	unsigned char zero = ((~PINA & 0x0F) == 0x00);                         //f c a# g d# f f d# f f g f d#
 	double arr[31] = {466.16,  466.16, 392.00, 523.25 , 392.00, 311.13, 349.23,//a# a# g c g d# f 6 
 		0, 349.23 , 311.13, 349.23, 311.13, 349.23, 0, 349.23, 0, //pause f 10
@@ -102,84 +103,53 @@ int stateUpdate(int state){
 	static double freq=466.16;
 	switch (state) { //transitions
 		case start:
-			state = next;
-			break;
-		case next:
-			if(a1){
-				state = add;
-			}
-			else if(a2){
-				state = sub;
-			}
-			else if(a0){
-				state = play;
-			}
-			break;
-		case add:
-			if(a1){
-				state = release;
-				break;
-			}
 			if(a0){
 				state = play;
+				currtime = 0x00;
 			}
-			else if(!a1){
-				state = next;
-				break;
-			}
-		case sub:
-			if(a2){
-				state = release;
-				break;
-			}
-			else if(a0){
-				state = play;
-			}
-			else if(!a2){
-				state = next;
-				break;
-			}
+			break;
 		case play:
-			if(a0){
-				state = play;
+			if(time<=arr1[index]){
+				freq = arr[index];
+				time++; 
+				break;
 			}
+			else {
+				if(index < 31){
+					index = index + 1;
+					time = 0;
+					break;
+				}
+				else{
+					state = done;	
+				}
+				break;
+			}
+			break;
+		case done:
+			if(a0){
+				state = waitRelease;
+			}
+			break;
+		case waitRelease:
 			if(!a0){
-				state = release;
+				state = waitPress;
 			}
 			break;
-		case release:
-			if(zero){
-				state = next;
-			}
-		default:
-			break;
-	}
-	switch (state) { //outputs
-		case start:
-			break;
-		case next:
-			break;
-		case add:
-			if(index < 0x07){
-				index = index + 0x01;
-				freq = arr[index];
+		case waitPress:
+			if(a0){
+				state = waitRelease2;
 			}
 			break;
-		case sub:
-			if(index > 0x00){
-				index = index - 0x01;
-				freq = arr[index];
+		case waitRelease2:
+			if(!a0){
+				state = play;
 			}
-			break;
-		case play:
-			set_PWM(freq);
-			break;
-		case release:
-			set_PWM(0);
 			break;
 		default:
 			break;
 	}
+	
 	return state;
 	
 }

@@ -76,12 +76,10 @@ int main(void) {
 	
 	States state = start;
 	//ADC_init();
-	while (1) {
-		
-			
+	while (1) {	
 		state = stateUpdate(state);
-			//while(!TimerFlag);
-			//TimerFlag =0;
+		while(!TimerFlag);
+		TimerFlag =0;
 	}
     
     return 0;
@@ -105,7 +103,7 @@ int stateUpdate(int state){
 		case start:
 			if(a0){
 				state = play;
-				currtime = 0x00;
+				time = 0x00;
 			}
 			break;
 		case play:
@@ -149,7 +147,7 @@ int stateUpdate(int state){
 		default:
 			break;
 	}
-	
+	set_PWM(freq);
 	return state;
 	
 }

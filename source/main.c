@@ -76,12 +76,10 @@ int main(void) {
 	
 	States state = start;
 	//ADC_init();
-	while (1) {
-		
-			
+	while (1) {	
 		state = stateUpdate(state);
-			//while(!TimerFlag);
-			//TimerFlag =0;
+		while(!TimerFlag);
+		TimerFlag =0;
 	}
     
     return 0;
@@ -96,16 +94,16 @@ int stateUpdate(int state){
 	double arr[31] = {466.16,  466.16, 392.00, 523.25 , 392.00, 311.13, 349.23,//a# a# g c g d# f 6 
 		0, 349.23 , 311.13, 349.23, 311.13, 349.23, 0, 349.23, 0, //pause f 10
 		349.23,523.25,466.16, 392.00,311.13,   349.23, 0 , 349.23,311.13, 349.23, 0 , 349.23,392.00, 349.23, 311.13}; //15
-	double arr1[31] = {20,20,20,20,20,20,40,
-		1,20,20,40,20,40,1,40,1,
-		20,20,20,20,20,  40,1,20,20,20,1,20,20,20};
+	double arr1[31] = {10,10,10,10,10,10,20,
+		1,10,10,20,10,20,1,20,1,
+		10,10,10,10,10,  20,1,10,10,10,1,10,10,10};
 	static unsigned char index=0;
-	static double freq=466.16;
+	static double freq=0;
 	switch (state) { //transitions
 		case start:
 			if(a0){
 				state = play;
-				currtime = 0x00;
+				time = 0x00;
 			}
 			break;
 		case play:
@@ -127,6 +125,7 @@ int stateUpdate(int state){
 			}
 			break;
 		case done:
+			freq = 0;
 			if(a0){
 				state = waitRelease;
 			}
@@ -143,13 +142,14 @@ int stateUpdate(int state){
 			break;
 		case waitRelease2:
 			if(!a0){
+				index = 0;
 				state = play;
 			}
 			break;
 		default:
 			break;
 	}
-	
+	set_PWM(freq);
 	return state;
 	
 }

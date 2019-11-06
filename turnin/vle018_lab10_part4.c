@@ -173,14 +173,17 @@ int freqUpdate(int state){
 			}
 			break;
 		case high:
-			if(buttonPeriod < 10){
-				buttonPeriod = buttonPeriod + 1;
+			if(buttonPeriod > 1){
+				buttonPeriod = buttonPeriod - 1;
+				tasks[3].period = buttonPeriod;
 			}
+			
 			state = waitZero;
 			break;
 		case low:
-			if(buttonPeriod > 1){
-				buttonPeriod = buttonPeriod - 1;
+			if(buttonPeriod < 10){
+				buttonPeriod = buttonPeriod + 1;
+				tasks[3].period = buttonPeriod;
 			}
 			state = waitZero;
 			break;	

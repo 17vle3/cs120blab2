@@ -15,9 +15,7 @@ unsigned long _avr_timer_M = 1;
 unsigned long _avr_timer_cntcurr = 0;
 
 typedef enum ThreeStates{one, two, three} ThreeStates;
-typedef enum BlinkStates{on, off} BlinkStates;
-typedef enum ButtonStates{start, soundOn, soundOff} ButtonStates;
-typedef enum FreqStates {begin, high, low, waitZero} FreqStates;
+
 typedef struct task {
    int state;                  // Task's current state
    unsigned long period;       // Task period
@@ -131,7 +129,7 @@ unsigned char GetKeypadKey(){
 
 int main(void) {
 	DDRB = 0xFF; PORTB = 0x00;
-	DDRA = 0x00; PORTA = 0xFF;
+	DDRC = 0xF0; PORTC = 0x0F;
 	
 	unsigned char i=0;
 	tasks[i].state = one;
@@ -140,17 +138,36 @@ int main(void) {
 	tasks[i].TickFct = &threeLEDUpdate; 
 	i=i+1;
 	
-	
-	
-	
-	//LCD_init();
 	TimerSet(1);
 	TimerOn();
 	PWM_on();
-	
+	unsigned char x;
 	
 	//ADC_init();
+	unsigned char x;
+	
 	while (1) {
+		switch(x){
+			case '\0': PORTB = 0x1F; break; 
+			case '1': PORTB = 0x01; break;
+			case '2': PORTB = 0x02; break;
+			case '3': PORTB = 0x03; break;
+			case '4': PORTB = 0x04; break;
+			case '5': PORTB = 0x05; break;
+			case '6': PORTB = 0x06; break;
+			case '7': PORTB = 0x07; break;
+			case '8': PORTB = 0x08; break;
+			case '9': PORTB = 0x09; break;
+			case 'A': PORTB = 0x0A; break;
+			case 'B': PORTB = 0x0B; break;
+			case 'C': PORTB = 0x0C; break;
+			case 'D': PORTB = 0x0D; break;
+			case '*': PORTB = 0x0E; break;
+			case '0': PORTB = 0x00; break;
+			case '#': PORTB = 0x0F; break;
+			default: PORTB = 0x1B; break;
+		}
+		
 		int i = 0x00;	
 		for(i = 0; i < tasksNum; i++){
 			

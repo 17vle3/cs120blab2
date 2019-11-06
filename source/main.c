@@ -25,8 +25,8 @@ typedef struct task {
    int (*TickFct)(int);        // Task tick function
 } task;
 
-task tasks[5];
-const unsigned short tasksNum = 5;
+task tasks[1];
+const unsigned short tasksNum = 1;
 void TimerOn(){
 	TCCR1B = 0x0B;
 	OCR1A = 125;
@@ -85,11 +85,6 @@ void PWM_off(){
 	TCCR3A = 0x00;
 	TCCR3B = 0x00;
 }
-
-unsigned char threeLEDb = 0x00;
-unsigned char blinkLEDb = 0x00;
-unsigned char buttonLEDb = 0x00;
- unsigned char buttonPeriod ;
 int blinkLEDUpdate(int state){
 	switch (state) { //transitions
 		case on:
@@ -106,102 +101,34 @@ int blinkLEDUpdate(int state){
 	return state;
 	
 }
-int threeLEDUpdate(int state){
-	switch (state) { //transitions
-		case one:
-			threeLEDb = 0x01;
-			state = two;
-			break;
-		case two:
-			threeLEDb = 0x02;
-			state = three;
-			break;
-		case three:
-			threeLEDb = 0x04;
-			state = one;
-		default:
-			break;
-	}
-	return state;	
+unsigned char GetKeypadKey(){
+	PORTC = 0xEF;
+	asm("nop");
+	if(GetBit(PINC,0) == 0) {return ('1');}
+	if(GetBit(PINC,1) == 0) {return ('4');}
+	if(GetBit(PINC,2) == 0) {return ('7');}
+	if(GetBit(PINC,3) == 0) {return ('*');}
+	PORTC = 0xDF;
+	asm("nop");
+	if(GetBit(PINC,0) == 0) {return ('2');}
+	if(GetBit(PINC,1) == 0) {return ('5');}
+	if(GetBit(PINC,2) == 0) {return ('8');}
+	if(GetBit(PINC,3) == 0) {return ('0');}
+	PORTC = 0xBF;
+	asm("nop");
+	if(GetBit(PINC,0) == 0) {return ('3');}
+	if(GetBit(PINC,1) == 0) {return ('6');}
+	if(GetBit(PINC,2) == 0) {return ('9');}
+	if(GetBit(PINC,3) == 0) {return ('#');}
+	PORTC = 0x7F;
+	asm("nop");
+	if(GetBit(PINC,0) == 0) {return ('A');}
+	if(GetBit(PINC,1) == 0) {return ('B');}
+	if(GetBit(PINC,2) == 0) {return ('C');}
+	if(GetBit(PINC,3) == 0) {return ('D');}
 }
-int buttonUpdate(int state){
-	unsigned char a0 = ((~PINA) & 0x04)>>2;
-	switch (state) { //transitions
-		case start:
-			buttonLEDb =0x00;
-			if(a0){
-				state = soundOn;
-			}
-			break;
-		case soundOn:
-			buttonLEDb =0x10;
-			if(!a0){
-				state = start;
-			}
-			else{
-				state = soundOff;
-			}
-			break;
-		case soundOff:
-			buttonLEDb =0x00;
-			if(!a0){
-				state = start;
-			}
-			else{
-				state = soundOn;
-			}
-			break;	
-		
-		default:
-			break;
-	}
-	return state;
-	
-}
-//begin, high, low, waitZero
-int freqUpdate(int state){
-	unsigned char a1 = (~PINA) & 0x01;
-	unsigned char a2 = ((~PINA) & 0x02)>>1;
-	unsigned char start = 0x01;
-	
-	switch (state) { //transitions
-		case begin:
-			if(start){
-				buttonPeriod = 0x07;
-				start = 0x01;
-			}
-			if(a1){
-				state = high;
-			}
-			else if(a2){
-				state = low;
-			}
-			break;
-		case high:
-			if(buttonPeriod > 1){
-				buttonPeriod = buttonPeriod - 1;
-			}
-			state = waitZero;
-			break;
-		case low:
-			if(buttonPeriod < 15){
-				buttonPeriod = buttonPeriod + 1;
-			}
-			state = waitZero;
-			break;	
-		case waitZero:
-			if ( (~PINA) & 0x00){
-				state = begin;
-			}
-		default:
-			break;
-	}
-	return state;
-	
-}
-void CombineLEDsSM(int b){
-	PORTB = blinkLEDb | threeLEDb | buttonLEDb;
-}
+
+
 int main(void) {
 	DDRB = 0xFF; PORTB = 0x00;
 	DDRA = 0x00; PORTA = 0xFF;
@@ -212,25 +139,7 @@ int main(void) {
 	tasks[i].elapsedTime = tasks[i].period;
 	tasks[i].TickFct = &threeLEDUpdate; 
 	i=i+1;
-	tasks[i].state = on;
-	tasks[i].period = 1000;
-	tasks[i].elapsedTime = tasks[i].period;
-	tasks[i].TickFct = &blinkLEDUpdate; 
-	i = i+1;
-	tasks[i].state = 0;
-	tasks[i].period = 2;
-	tasks[i].elapsedTime = tasks[i].period;
-	tasks[i].TickFct = &freqUpdate; 
-	i = i+1;
-	tasks[i].state = start;
-	tasks[i].period = buttonPeriod;
-	tasks[i].elapsedTime = tasks[i].period;
-	tasks[i].TickFct = &buttonUpdate; 
-	i = i+1;
-	tasks[i].state = 0;
-	tasks[i].period = 2;
-	tasks[i].elapsedTime = tasks[i].period;
-	tasks[i].TickFct = &CombineLEDsSM; 
+	
 	
 	
 	

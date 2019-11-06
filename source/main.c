@@ -89,7 +89,7 @@ void PWM_off(){
 unsigned char threeLEDb = 0x00;
 unsigned char blinkLEDb = 0x00;
 unsigned char buttonLEDb = 0x00;
-static unsigned char buttonPeriod = 0x05;
+ unsigned char buttonPeriod ;
 int blinkLEDUpdate(int state){
 	switch (state) { //transitions
 		case on:
@@ -125,7 +125,7 @@ int threeLEDUpdate(int state){
 	return state;	
 }
 int buttonUpdate(int state){
-	unsigned char a0 = (~PINA) & 0x01;
+	unsigned char a0 = ((~PINA) & 0x04)>>2;
 	switch (state) { //transitions
 		case start:
 			buttonLEDb =0x00;
@@ -160,11 +160,16 @@ int buttonUpdate(int state){
 }
 //begin, high, low, waitZero
 int freqUpdate(int state){
-	unsigned char a1 = ((~PINA) & 0x02)>>1;
-	unsigned char a2 = ((~PINA) & 0x04)>>2;
+	unsigned char a1 = (~PINA) & 0x01;
+	unsigned char a2 = ((~PINA) & 0x02)>>1;
+	unsigned char start = 0x01;
 	
 	switch (state) { //transitions
 		case begin:
+			if(start){
+				buttonPeriod = 0x07;
+				start = 0x01;
+			}
 			if(a1){
 				state = high;
 			}
@@ -173,14 +178,14 @@ int freqUpdate(int state){
 			}
 			break;
 		case high:
-			if(buttonPeriod < 10){
-				buttonPeriod = buttonPeriod + 1;
+			if(buttonPeriod > 1){
+				buttonPeriod = buttonPeriod - 1;
 			}
 			state = waitZero;
 			break;
 		case low:
-			if(buttonPeriod > 1){
-				buttonPeriod = buttonPeriod - 1;
+			if(buttonPeriod < 15){
+				buttonPeriod = buttonPeriod + 1;
 			}
 			state = waitZero;
 			break;	
@@ -213,7 +218,7 @@ int main(void) {
 	tasks[i].TickFct = &blinkLEDUpdate; 
 	i = i+1;
 	tasks[i].state = 0;
-	tasks[i].period = 1;
+	tasks[i].period = 2;
 	tasks[i].elapsedTime = tasks[i].period;
 	tasks[i].TickFct = &freqUpdate; 
 	i = i+1;

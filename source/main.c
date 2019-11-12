@@ -181,7 +181,7 @@ int displaySMTick(int state){
 	switch(state){
 		case display_displayNext: 
 			LCD_DisplayString(0, arr1[index]):
-			index++;
+			if(index < 12) {index++;}
 		default:
 			break;
 	}

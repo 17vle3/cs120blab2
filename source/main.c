@@ -96,7 +96,7 @@ unsigned char playNext = 0;
 //------------------End Shared Variables----------------
 typedef enum playNext_States{playNext_one, playNext_zero} playNext_States; 
 //every .5 seconds, play next letter.
-//15 ms playNext = 1, 450 ms playNext = 0; 
+//20 ms playNext = 1, 480 ms playNext = 0; 
 int pauseButtonSMTick(int state){
 	static unsigned int time = 0x00;
 	switch (state) { 
@@ -106,7 +106,7 @@ int pauseButtonSMTick(int state){
 			break;
 		case playNext_zero:
 			playNext = 0;
-			if( time >= 30){
+			if( time >= 24){
 				state = playNext_one;
 			}
 			else{
@@ -150,17 +150,38 @@ int toggleLED1SMTick(int state){
 	}
 	return state;
 }
-
-enum display_States {display_display};
+//every 10 ms check playNext 
+//if playNext = 1, update, wait for zero
+//LCD_DisplayString(unsigned char column, const unsigned char* string):
+enum display_States {display_displayNext, display_wait0,display_wait1 };
 int displaySMTick(int state){
 	unsigned char output;
+	//"CS120B is Legend... wait for it DARY!"
+	char* arr1[12] = {"Legend... wait f", "egend... wait fo", "gend... wait for", "end... wait for ", "nd... wait for i", //5
+			 "d... wait for it", "... wait for it ", ".. wait for it D", ". wait for it DA", " wait for it DAR", //5
+			"wait for it DARY", "wait for it DARY!"}; //12
+	static unsigned char index = 0x00;
 	switch(state){
-		case display_display: state = display_display; break;
-		default: state = display_display; break;
+		case display_displayNext:
+			state = display_wait; 
+			break;
+		case display_wait0:
+			if( playNext = 0){
+				state = display_wait1; 
+			}
+			break;
+		case display_wait1:
+			if( playNext = 1){
+				state = display_displayNext; 
+			}
+			break;
+		default: 
+			break;
 	}
 	switch(state){
-		case display_display: 
-			output = led0_output | led1_output << 1;
+		case display_displayNext: 
+			LCD_DisplayString(0, arr1[index]):
+			index++;
 		default:
 			break;
 	}

@@ -120,72 +120,41 @@ int pauseButtonSMTick(int state){
 	
 }
 
-typedef enum toggleLED0_States{toggleLED0_wait, toggleLED0_blink} toggleLED0_States;
-int toggleLED0SMTick(int state){
-	unsigned char press = ~PINA & 0x01;
-	switch (state) { 
-		case toggleLED0_wait:
-			led0_output = 0x00;
-			state = !pause? toggleLED0_blink : toggleLED0_wait; break;
-		case toggleLED0_blink:
-			led0_output = 0x01;
-			state = pause? toggleLED0_wait : toggleLED0_blink; break;
-		default:
-			state = toggleLED0_wait; break;
-	}
-	return state;
-}
-typedef enum toggleLED1_States{toggleLED1_wait, toggleLED1_blink} toggleLED1_States;
-int toggleLED1SMTick(int state){
-	unsigned char press = ~PINA & 0x01;
-	switch (state) { 
-		case toggleLED1_wait:
-			led1_output = 0x00;
-			state = !pause? toggleLED1_blink : toggleLED1_wait; break;
-		case toggleLED1_blink:
-			led1_output = 0x01;
-			state = pause? toggleLED1_wait : toggleLED1_blink; break;
-		default:
-			state = toggleLED1_wait; break;
-	}
-	return state;
-}
 //every 10 ms check playNext 
 //if playNext = 1, update, wait for zero
 //LCD_DisplayString(unsigned char column, const unsigned char* string):
-enum display_States {display_displayNext, display_wait0,display_wait1 };
+enum display_States {display_displayNext, display_wait };
 int displaySMTick(int state){
 	unsigned char output;
 	//"CS120B is Legend... wait for it DARY!"
-	char* arr1[12] = {"Legend... wait f", "egend... wait fo", "gend... wait for", "end... wait for ", "nd... wait for i", //5
-			 "d... wait for it", "... wait for it ", ".. wait for it D", ". wait for it DA", " wait for it DAR", //5
-			"wait for it DARY", "wait for it DARY!"}; //12
+	const unsigned char display[27] = "Legend... wait for it DARY!"; //12
 	static unsigned char index = 0x00;
+	int i;
+	switch(state){
+		case display_displayNext: 
+			LCD_Cursor(0);
+			for(i = 0; i < 16 ; i++){
+				LCD_WriteData(display[index+i]);	
+			}
+			if(index < 27-16){
+				index++;
+			}
+		default:
+			break;
+	}
+	
 	switch(state){
 		case display_displayNext:
 			state = display_wait; 
 			break;
-		case display_wait0:
-			if( playNext = 0){
-				state = display_wait1; 
-			}
-			break;
-		case display_wait1:
-			if( playNext = 1){
-				state = display_displayNext; 
-			}
+		case display_wait:
+			state = display_displayNext; 
 			break;
 		default: 
 			break;
 	}
-	switch(state){
-		case display_displayNext: 
-			LCD_DisplayString(0, arr1[index]):
-			if(index < 12) {index++;}
-		default:
-			break;
-	}
-	PORTB = output;
+	
+
 	return state;
 }
 /**
@@ -221,31 +190,19 @@ unsigned char GetKeypadKey(){
 int main(void) {
 	DDRA = 0x00; PORTA = 0xFF;
 	DDRB = 0xFF; PORTB = 0x00;
+	DDRC = 0xFF; PORTC = 0x00;
+	DDRD = 0xFF; PORTD = 0x00;
 	
-	static task task1,task2,task3,task4;
-	task *tasks[] = {&task1, &task2, &task3, &task4};
+	static task task2;
+	task *tasks[] = {&task2};
 	const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
 	
-	//task 1
-	task1.state = pauseButton_wait;
-	task1.period = 50;
-	task1.elapsedTime = task1.period;
-	task1.TickFct = &pauseButtonSMTick; 
-	//task2
-	task2.state = toggleLED0_wait;
+	
+	task2.state = display_displayNext;
 	task2.period = 500;
 	task2.elapsedTime = task2.period;
-	task2.TickFct = &toggleLED0SMTick; 
-	//tasks3
-	task3.state = toggleLED1_wait;
-	task3.period = 1000;
-	task3.elapsedTime = task3.period;
-	task3.TickFct = &toggleLED1SMTick; 
-	//tasks4
-	task4.state = display_display;
-	task4.period = 10;
-	task4.elapsedTime = task4.period;
-	task4.TickFct = &displaySMTick; 
+	task2.TickFct = &displaySMTick; 
+	
 	
 	TimerSet(10);
 	TimerOn();

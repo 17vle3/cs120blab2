@@ -94,6 +94,7 @@ unsigned char led0_output = 0x00;
 unsigned char led1_output = 0x00;
 unsigned char playNext = 0;
 //------------------End Shared Variables----------------
+/**
 typedef enum playNext_States{playNext_one, playNext_zero} playNext_States; 
 //every .5 seconds, play next letter.
 //20 ms playNext = 1, 480 ms playNext = 0; 
@@ -118,7 +119,7 @@ int pauseButtonSMTick(int state){
 	}
 	return state;
 	
-}
+}**/
 
 //every 10 ms check playNext 
 //if playNext = 1, update, wait for zero
@@ -132,13 +133,17 @@ int displaySMTick(int state){
 	int i;
 	switch(state){
 		case display_displayNext: 
-			LCD_Cursor(0);
+			LCD_ClearScreen();
+			
+			
 			for(i = 0; i < 16 ; i++){
 				LCD_WriteData(display[index+i]);	
 			}
+			
 			if(index < 27-16){
 				index++;
 			}
+		
 		default:
 			break;
 	}
@@ -199,7 +204,7 @@ int main(void) {
 	
 	
 	task2.state = display_displayNext;
-	task2.period = 500;
+	task2.period = 1000;
 	task2.elapsedTime = task2.period;
 	task2.TickFct = &displaySMTick; 
 	
@@ -208,7 +213,7 @@ int main(void) {
 	TimerOn();
 	//PWM_on();
 	unsigned short i;
-	
+	LCD_init();
 	//ADC_init();
 	
 	while (1) {

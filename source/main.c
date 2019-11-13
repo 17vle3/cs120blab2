@@ -8,9 +8,6 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "io.h"
-
-typedef enum States{start} States;
-
 unsigned char GetBit(unsigned char C, unsigned char index){
 	unsigned char maskValue = 0x01 << index;
 	return ((C & maskValue) == 0x00) ? 0x00 : 0x01;
@@ -42,15 +39,6 @@ void TimerOff(){
 
 void TimerISR(){
 	TimerFlag = 1;
-	/**
-	unsigned char i;
-	for (i = 0; i < tasksNum; ++i) { // Heart of the scheduler code
-		if ( tasks[i].elapsedTime >= tasks[i].period ) { // Ready
-			tasks[i].state = tasks[i].TickFct(tasks[i].state);
-			tasks[i].elapsedTime = 0;
-		}
-		tasks[i].elapsedTime += 1;
-  }**/
 }
 ISR(TIMER1_COMPA_vect){
 	_avr_timer_cntcurr--;
@@ -89,122 +77,97 @@ void PWM_off(){
 	TCCR3A = 0x00;
 	TCCR3B = 0x00;
 }
-//------------------Shared Variables----------------
-unsigned char led0_output = 0x00;
-unsigned char led1_output = 0x00;
-unsigned char playNext = 0;
-//------------------End Shared Variables----------------
-/**
-typedef enum playNext_States{playNext_one, playNext_zero} playNext_States; 
-//every .5 seconds, play next letter.
-//20 ms playNext = 1, 480 ms playNext = 0; 
-int pauseButtonSMTick(int state){
-	static unsigned int time = 0x00;
-	switch (state) { 
-		case playNext_one:
-			playNext = 1;
-			state = playNext_wait;
-			break;
-		case playNext_zero:
-			playNext = 0;
-			if( time >= 24){
-				state = playNext_one;
-			}
-			else{
-				state = playNext_zero;
-			}
-			break;
-		default:
-			break;
-	}
-	return state;
-	
-}**/
-
-//every 10 ms check playNext 
-//if playNext = 1, update, wait for zero
-//LCD_DisplayString(unsigned char column, const unsigned char* string):
-enum display_States {display_displayNext, display_wait };
-int displaySMTick(int state){
-	unsigned char output;
-	//"CS120B is Legend... wait for it DARY!"
-	const unsigned char display[27] = "Legend... wait for it DARY!"; //12
-	static unsigned char index = 0x00;
-	int i;
-	switch(state){
-		case display_displayNext: 
-			LCD_ClearScreen();
-			
-			
-			for(i = 0; i < 16 ; i++){
-				LCD_WriteData(display[index+i]);	
-			}
-			
-			if(index < 27-16){
-				index++;
-			}
-		
-		default:
-			break;
-	}
-	
-	switch(state){
-		case display_displayNext:
-			state = display_wait; 
-			break;
-		case display_wait:
-			state = display_displayNext; 
-			break;
-		default: 
-			break;
-	}
-	
-
-	return state;
-}
-/**
 unsigned char GetKeypadKey(){
-	PORTC = 0xEF;
+	PORTA = 0xEF;
 	asm("nop");
-	if(GetBit(PINC,0) == 0) {return ('1');}
-	if(GetBit(PINC,1) == 0) {return ('4');}
-	if(GetBit(PINC,2) == 0) {return ('7');}
-	if(GetBit(PINC,3) == 0) {return ('*');}
-	PORTC = 0xDF;
+	if(GetBit(PINA,0) == 0) {return ('1');}
+	if(GetBit(PINA,1) == 0) {return ('4');}
+	if(GetBit(PINA,2) == 0) {return ('7');}
+	if(GetBit(PINA,3) == 0) {return ('*');}
+	PORTA = 0xDF;
 	asm("nop");
-	if(GetBit(PINC,0) == 0) {return ('2');}
-	if(GetBit(PINC,1) == 0) {return ('5');}
-	if(GetBit(PINC,2) == 0) {return ('8');}
-	if(GetBit(PINC,3) == 0) {return ('0');}
-	PORTC = 0xBF;
+	if(GetBit(PINA,0) == 0) {return ('2');}
+	if(GetBit(PINA,1) == 0) {return ('5');}
+	if(GetBit(PINA,2) == 0) {return ('8');}
+	if(GetBit(PINA,3) == 0) {return ('0');}
+	PORTA = 0xBF;
 	asm("nop");
-	if(GetBit(PINC,0) == 0) {return ('3');}
-	if(GetBit(PINC,1) == 0) {return ('6');}
-	if(GetBit(PINC,2) == 0) {return ('9');}
-	if(GetBit(PINC,3) == 0) {return ('#');}
-	PORTC = 0x7F;
+	if(GetBit(PINA,0) == 0) {return ('3');}
+	if(GetBit(PINA,1) == 0) {return ('6');}
+	if(GetBit(PINA,2) == 0) {return ('9');}
+	if(GetBit(PINA,3) == 0) {return ('#');}
+	PORTA = 0x7F;
 	asm("nop");
-	if(GetBit(PINC,0) == 0) {return ('A');}
-	if(GetBit(PINC,1) == 0) {return ('B');}
-	if(GetBit(PINC,2) == 0) {return ('C');}
-	if(GetBit(PINC,3) == 0) {return ('D');}
+	if(GetBit(PINA,0) == 0) {return ('A');}
+	if(GetBit(PINA,1) == 0) {return ('B');}
+	if(GetBit(PINA,2) == 0) {return ('C');}
+	if(GetBit(PINA,3) == 0) {return ('D');}
 	return ('\0');
 }
-**/
+//------------------Shared Variables----------------
+unsigned char currentOutput = '\0';
+unsigned char lastOutput = '\0';
+//------------------End Shared Variables----------------
+typedef enum pauseButtonSM_States{updateInput_start,updateInput_update } pauseButtonSM_States;
+int updateInput(int state){
+	lastOutput = currentOutput; 
+
+	switch (state) { 
+		case updateInput_start:
+			if(lastOutput == 0x1F != currentOutput){
+				state = updateInput_update;
+			}
+			break;
+		case updateInput_update:
+			currentOutput = GetKeypadKey();
+			state = updateInput_start;
+			break;
+		default:
+			break;
+	}
+	return state;
+	
+}
+
+enum display_States {display_display };
+int displaySMTick(int state){
+	int x=GetKeypadKey();
+	switch(state){
+		case display_display: 
+			if(x != '\0'){
+				LCD_ClearScreen();
+				LCD_WriteData(x);	
+			}
+		default:
+			break;
+	}
+	return state;
+}
+
+
+
 
 int main(void) {
-	DDRA = 0x00; PORTA = 0xFF;
 	DDRB = 0xFF; PORTB = 0x00;
 	DDRC = 0xFF; PORTC = 0x00;
 	DDRD = 0xFF; PORTD = 0x00;
+	DDRA = 0xF0; PORTA = 0x0F;
 	
-	static task task2;
-	task *tasks[] = {&task2};
+	int i;
+	
+	static task task1,task2;
+	task *tasks[] = {&task1, &task2};
 	const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
 	
+	//task 1
+	task1.state = updateInput_start;
+	task1.period = 30;
+	task1.elapsedTime = task1.period;
+	task1.TickFct = &updateInput; 
 	
-	task2.state = display_displayNext;
-	task2.period = 1000;
+	//task 2
+	task2.state = display_display;
+	task2.period = 50;
 	task2.elapsedTime = task2.period;
 	task2.TickFct = &displaySMTick; 
 	
@@ -212,9 +175,9 @@ int main(void) {
 	TimerSet(10);
 	TimerOn();
 	//PWM_on();
-	unsigned short i;
+	
+	
 	LCD_init();
-	//ADC_init();
 	
 	while (1) {
 		for(i = 0; i<numTasks; i++){

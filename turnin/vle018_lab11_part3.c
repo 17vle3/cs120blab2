@@ -36,16 +36,9 @@ void TimerOn(){
 void TimerOff(){
 	TCCR1B = 0x00;
 }
-/**
+
 void TimerISR(){
-	unsigned char i;
-	for (i = 0; i < tasksNum; ++i) { // Heart of the scheduler code
-		if ( tasks[i].elapsedTime >= tasks[i].period ) { // Ready
-			tasks[i].state = tasks[i].TickFct(tasks[i].state);
-			tasks[i].elapsedTime = 0;
-		}
-		tasks[i].elapsedTime += 1;
-  }
+	TimerFlag = 1;
 }
 ISR(TIMER1_COMPA_vect){
 	_avr_timer_cntcurr--;
@@ -57,7 +50,7 @@ ISR(TIMER1_COMPA_vect){
 void TimerSet (unsigned long M){
 	_avr_timer_M = M;
 	_avr_timer_cntcurr = _avr_timer_M;
-}**/
+}
 void ADC_init(){
 	ADCSRA |= (1<<ADEN) | (1<< ADSC) | (1<<ADATE);
 }
@@ -84,101 +77,118 @@ void PWM_off(){
 	TCCR3A = 0x00;
 	TCCR3B = 0x00;
 }
+unsigned char GetKeypadKey(){
+	PORTA = 0xEF;
+	asm("nop");
+	if(GetBit(PINA,0) == 0) {return ('1');}
+	if(GetBit(PINA,1) == 0) {return ('4');}
+	if(GetBit(PINA,2) == 0) {return ('7');}
+	if(GetBit(PINA,3) == 0) {return ('*');}
+	PORTA = 0xDF;
+	asm("nop");
+	if(GetBit(PINA,0) == 0) {return ('2');}
+	if(GetBit(PINA,1) == 0) {return ('5');}
+	if(GetBit(PINA,2) == 0) {return ('8');}
+	if(GetBit(PINA,3) == 0) {return ('0');}
+	PORTA = 0xBF;
+	asm("nop");
+	if(GetBit(PINA,0) == 0) {return ('3');}
+	if(GetBit(PINA,1) == 0) {return ('6');}
+	if(GetBit(PINA,2) == 0) {return ('9');}
+	if(GetBit(PINA,3) == 0) {return ('#');}
+	PORTA = 0x7F;
+	asm("nop");
+	if(GetBit(PINA,0) == 0) {return ('A');}
+	if(GetBit(PINA,1) == 0) {return ('B');}
+	if(GetBit(PINA,2) == 0) {return ('C');}
+	if(GetBit(PINA,3) == 0) {return ('D');}
+	return ('\0');
+}
 //------------------Shared Variables----------------
-unsigned char led0_output = 0x00;
-unsigned char led1_output = 0x00;
-unsigned char pause = 0;
+unsigned char currentOutput = '\0';
+unsigned char lastOutput = '\0';
 //------------------End Shared Variables----------------
+typedef enum pauseButtonSM_States{updateInput_start,updateInput_update } pauseButtonSM_States;
+int updateInput(int state){
+	lastOutput = currentOutput; 
 
-enum display_States {display_display};
-int displaySMTick(int state){
-	static unsigned char currNum;
-	unsigned char output = GetKeypadKey();
-	switch(state){
-		case display_display: state = display_display; break;
-		default: state = display_display; break;
-	}
-	switch(state){
-		case display_display: 
-			output = led0_output | led1_output << 1;
+	switch (state) { 
+		case updateInput_start:
+			if(lastOutput == 0x1F != currentOutput){
+				state = updateInput_update;
+			}
+			break;
+		case updateInput_update:
+			currentOutput = GetKeypadKey();
+			state = updateInput_start;
+			break;
 		default:
 			break;
 	}
-	PORTB = output;
+	return state;
+	
+}
+
+enum display_States {display_display };
+int displaySMTick(int state){
+	int x=GetKeypadKey();
+	switch(state){
+		case display_display: 
+			if(x != '\0'){
+				LCD_ClearScreen();
+				LCD_WriteData(x);	
+			}
+		default:
+			break;
+	}
 	return state;
 }
 
-unsigned char GetKeypadKey(){
-	PORTC = 0xEF;
-	asm("nop");
-	if(GetBit(PINC,0) == 0) {return ('1');}
-	if(GetBit(PINC,1) == 0) {return ('4');}
-	if(GetBit(PINC,2) == 0) {return ('7');}
-	if(GetBit(PINC,3) == 0) {return ('*');}
-	PORTC = 0xDF;
-	asm("nop");
-	if(GetBit(PINC,0) == 0) {return ('2');}
-	if(GetBit(PINC,1) == 0) {return ('5');}
-	if(GetBit(PINC,2) == 0) {return ('8');}
-	if(GetBit(PINC,3) == 0) {return ('0');}
-	PORTC = 0xBF;
-	asm("nop");
-	if(GetBit(PINC,0) == 0) {return ('3');}
-	if(GetBit(PINC,1) == 0) {return ('6');}
-	if(GetBit(PINC,2) == 0) {return ('9');}
-	if(GetBit(PINC,3) == 0) {return ('#');}
-	PORTC = 0x7F;
-	asm("nop");
-	if(GetBit(PINC,0) == 0) {return ('A');}
-	if(GetBit(PINC,1) == 0) {return ('B');}
-	if(GetBit(PINC,2) == 0) {return ('C');}
-	if(GetBit(PINC,3) == 0) {return ('D');}
-	return ('\0');
-}
+
 
 
 int main(void) {
 	DDRB = 0xFF; PORTB = 0x00;
-	DDRC = 0xF0; PORTC = 0x0F;
+	DDRC = 0xFF; PORTC = 0x00;
+	DDRD = 0xFF; PORTD = 0x00;
+	DDRA = 0xF0; PORTA = 0x0F;
 	
-	static task task1,task2,task3,task4;
-	task *tasks[] = {&task1, &task2, &task3, &task4};
+	int i;
+	
+	static task task1,task2;
+	task *tasks[] = {&task1, &task2};
 	const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
 	
 	//task 1
-	task1.state = start;
-	task1.period = 50;
+	task1.state = updateInput_start;
+	task1.period = 30;
 	task1.elapsedTime = task1.period;
-	task1.TickFct = &pauseButtonSMTick; 
-	//task2
-	task2.state = start;
-	task2.period = 500;
+	task1.TickFct = &updateInput; 
+	
+	//task 2
+	task2.state = display_display;
+	task2.period = 50;
 	task2.elapsedTime = task2.period;
-	task2.TickFct = &toggleLED0SMTick; 
-	//tasks3
-	task3.state = start;
-	task3.period = 1000;
-	task3.elapsedTime = tass3.period;
-	task3.TickFct = &toggleLED1SMTick; 
-	//tasks4
-	task4.state = start;
-	task4.period = 10;
-	task4.elapsedTime = task4.period;
-	task4.TickFct = &displaySMTick; 
+	task2.TickFct = &displaySMTick; 
+	
 	
 	TimerSet(10);
 	TimerOn();
 	//PWM_on();
-	unsigned char x;
 	
-	//ADC_init();
+	
+	LCD_init();
 	
 	while (1) {
-		x = GetKeypadKey();
-		
-		/**
+		for(i = 0; i<numTasks; i++){
+			if(tasks[i]->elapsedTime == tasks[i]->period){
+				tasks[i]->elapsedTime = tasks[i]->TickFct(tasks[i]->state);
+				tasks[i]->elapsedTime = 0;
+			}
+			tasks[i]->elapsedTime +=10;
+		}
 		while(!TimerFlag);
-		TimerFlag =0;**/
+		TimerFlag = 0;
 	}
     
     return 0;

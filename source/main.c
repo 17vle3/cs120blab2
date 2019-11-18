@@ -148,10 +148,9 @@ int displaySMTick(int state){
 
 
 int main(void) {
-	DDRB = 0xFF; PORTB = 0x00;
+	DDRB = 0x00; PORTB = 0xFF;
 	DDRC = 0xFF; PORTC = 0x00;
 	DDRD = 0xFF; PORTD = 0x00;
-	DDRA = 0xF0; PORTA = 0x0F;
 	
 	int i;
 	
@@ -180,16 +179,43 @@ int main(void) {
 	LCD_init();
 	
 	while (1) {
+		/**
 		for(i = 0; i<numTasks; i++){
 			if(tasks[i]->elapsedTime == tasks[i]->period){
 				tasks[i]->elapsedTime = tasks[i]->TickFct(tasks[i]->state);
 				tasks[i]->elapsedTime = 0;
 			}
 			tasks[i]->elapsedTime +=10;
-		}
+		}**/
+		
+		PORTC = 0b11111110 & 0b11101111;
+		PORTD = 0b01111110;
+		
 		while(!TimerFlag);
 		TimerFlag = 0;
 	}
     
     return 0;
 }
+/**
+for D:
+* PORTD = 0b01111110; (every column lit)
+* first column: 0b01100010
+* second: 0b01100100
+* third: 0b01101000
+* fourth: 0b01110000
+
+PORTC
+(and them together) 
+* 1 0b11111110
+* 2 0b11111101
+* 3 0b11111011
+* 4 0b11110111
+* 5 0b11101111
+* 6 0b11011111
+* 7 0b10111111
+* 8 0b01111111
+
+//last row 0b01111111
+
+**/

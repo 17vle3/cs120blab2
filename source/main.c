@@ -105,46 +105,59 @@ unsigned char GetKeypadKey(){
 	return ('\0');
 }
 //------------------Shared Variables----------------
-unsigned char currentOutput = '\0';
-unsigned char lastOutput = '\0';
+unsigned char col[8] = {0b11111110,0b11111101,0b11111011,0b11110111,0b11101111,0b11011111,0b10111111,0b01111111};
+unsigned char row[4] = {0b01100010,0b01100100, 0b01101000,0b01110000};
+unsigned char columnOutput = 0x00;
+static unsigned char rowOutput = 0x00;
+unsigned char colCheck[8] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
+unsigned const char song[] = {0}; //possible 0 1 2 3 01 02 12 13 23 012 etc 
+unsigned const char songSize = 1;
+static unsigned char songIndex = 0;
+static unsigned char existingColumns = 0; //which columns exist right now in binary 0x00 = none 0x01 = top column 0x02 = second column etc 
+
 //------------------End Shared Variables----------------
-typedef enum pauseButtonSM_States{updateInput_start,updateInput_update } pauseButtonSM_States;
-int updateInput(int state){
-	lastOutput = currentOutput; 
-
-	switch (state) { 
-		case updateInput_start:
-			if(lastOutput == 0x1F != currentOutput){
-				state = updateInput_update;
-			}
-			break;
-		case updateInput_update:
-			currentOutput = GetKeypadKey();
-			state = updateInput_start;
-			break;
-		default:
-			break;
-	}
-	return state;
+/**
+ * This function moves the dots down by 1 row
+ * This should be updated at the same speed as the display.
+ **/
+typedef enum updateColumnsStates{updateColumns_start} updateColumnsStates;
+int updateColumns(){
+	//function for adding new column here
 	
-}
-
-enum display_States {display_display };
-int displaySMTick(int state){
-	int x=GetKeypadKey();
-	switch(state){
-		case display_display: 
-			if(x != '\0'){
-				LCD_ClearScreen();
-				LCD_WriteData(x);	
-			}
+	switch (state) { 
+		case updateColumns_start:
+			int i;
+			columnOutput = columnOutput<< 1;
+			for(i = 0; i < 8 ; i++){
+				if(existingColumns & colCheck[i]){
+					columnOutput = columnOutput&col[i];
+				}
+			} 
+			break;
 		default:
 			break;
 	}
-	return state;
+	return updateColumns_start;
 }
-
-
+/**
+ * This function adds a dot at the top 
+ **/
+typedef enum newDotStates{updateNewDot_start} newDotStates;
+int updateNewDot(){
+	//function for adding new column here
+	
+	switch (state) { 
+		case updateNewDot_start:
+			if(songIndex >= songSize){
+				break;
+			}
+			if()
+			break;
+		default:
+			break;
+	}
+	return updateColumns_start;
+}
 
 
 int main(void) {
@@ -159,16 +172,12 @@ int main(void) {
 	const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
 	
 	//task 1
-	task1.state = updateInput_start;
+	task1.state = rollDown_start;
 	task1.period = 30;
 	task1.elapsedTime = task1.period;
-	task1.TickFct = &updateInput; 
+	task1.TickFct = &rollDownUpdate; 
 	
-	//task 2
-	task2.state = display_display;
-	task2.period = 50;
-	task2.elapsedTime = task2.period;
-	task2.TickFct = &displaySMTick; 
+	
 	
 	
 	TimerSet(10);
@@ -188,7 +197,7 @@ int main(void) {
 			tasks[i]->elapsedTime +=10;
 		}**/
 		
-		PORTC = 0b11111110 & 0b11101111;
+		PORTC = 0b11111110;
 		PORTD = 0b01111110;
 		
 		while(!TimerFlag);
@@ -198,14 +207,15 @@ int main(void) {
     return 0;
 }
 /**
-for D:
+for D: (ROWS)
+* (or them together)
 * PORTD = 0b01111110; (every column lit)
 * first column: 0b01100010
 * second: 0b01100100
 * third: 0b01101000
 * fourth: 0b01110000
 
-PORTC
+PORTC (COLUMNS) 
 (and them together) 
 * 1 0b11111110
 * 2 0b11111101

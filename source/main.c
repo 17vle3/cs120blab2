@@ -158,7 +158,6 @@ int updateStart(int state){
 		case updateStart_start:
 			if( startButton ){
 				start = 0x01;
-				PORTB = 0x01;
 			}
 			break;
 		case updateStart_next:
@@ -167,6 +166,28 @@ int updateStart(int state){
 		default:
 			break;
 	}
+	return state;
+}
+//period 200
+typedef enum scoreStates{score_start} scoreStates;
+int scoreUpdate(int state){
+	if(!start){
+		return state;
+	}
+	static unsigned char time = 0;
+	if(time >= 8){
+		time = 0;
+	}
+	if (time == 6){
+		PORTB = 0x01;
+	}
+	else{
+		PORTB = 0x00;
+	}
+	
+	time++;
+	
+	
 	return state;
 }
 
@@ -190,8 +211,8 @@ int main(void) {
 	DDRC = 0xFF; PORTC = 0x00;
 	DDRD = 0xFF; PORTD = 0x00;
 	
-	static task task1, task2, task3;
-	task *tasks[] = {&task1, &task2, &task3};
+	static task task1, task2, task4, task3;
+	task *tasks[] = {&task1, &task2, &task4, &task3};
 	const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
 	
 	//task 1
@@ -206,6 +227,12 @@ int main(void) {
 	task2.period = 20;
 	task2.elapsedTime = task2.period;
 	task2.TickFct = &updateStart; 
+	
+	//task4
+	task4.state = score_start;
+	task4.period = 200;
+	task4.elapsedTime = task4.period;
+	task4.TickFct = &scoreUpdate; 
 	
 	//task 3
 	task3.state = display_start;

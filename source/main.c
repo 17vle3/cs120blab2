@@ -14,6 +14,79 @@
 #define three (~PINA & 0x08)>>3
 #define startButton (~PINA & 0x10)>>4
 
+/**-------------------------------for shift register--------------------------------------------**/
+#define HC595_PORT   PORTD
+#define HC595_DDR    DDRD
+
+#define HC595_DS_POS ~PIND & 0x01      //Data pin (DS) pin location
+
+#define HC595_SH_CP_POS PB1 (~PIND & 0x02)>>1     //Shift Clock (SH_CP) pin location 
+#define HC595_ST_CP_POS PB2  (~PIND & 0x04)>>2
+ 
+void HC595Init()
+{
+   //Make the Data(DS), Shift clock (SH_CP), Store Clock (ST_CP) lines output
+   HC595_DDR|=((1<<HC595_SH_CP_POS)|(1<<HC595_ST_CP_POS)|(1<<HC595_DS_POS));
+}
+#define HC595DataHigh() (HC595_PORT|=(1<<HC595_DS_POS))
+
+#define HC595DataLow() (HC595_PORT&=(~(1<<HC595_DS_POS)))
+
+//Sends a clock pulse on SH_CP line
+void HC595Pulse()
+{
+   //Pulse the Shift Clock
+
+   HC595_PORT|=(1<<HC595_SH_CP_POS);//HIGH
+
+   HC595_PORT&=(~(1<<HC595_SH_CP_POS));//LOW
+
+}
+
+//Sends a clock pulse on ST_CP line
+void HC595Latch()
+{
+   //Pulse the Store Clock
+
+   HC595_PORT|=(1<<HC595_ST_CP_POS);//HIGH
+   _delay_loop_1(1);
+
+   HC595_PORT&=(~(1<<HC595_ST_CP_POS));//LOW
+   _delay_loop_1(1);
+}
+void HC595Write(uint8_t data)
+{
+   //Send each 8 bits serially
+
+   //Order is MSB first
+   for(uint8_t i=0;i<8;i++)
+   {
+      //Output the data on DS line according to the
+      //Value of MSB
+      if(data & 0b10000000)
+      {
+         //MSB is 1 so output high
+
+         HC595DataHigh();
+      }
+      else
+      {
+         //MSB is 0 so output high
+         HC595DataLow();
+      }
+
+      HC595Pulse();  //Pulse the Clock line
+      data=data<<1;  //Now bring next bit at MSB position
+
+   }
+
+   //Now all 8 bits have been transferred to shift register
+   //Move them to output latch at one
+   HC595Latch();
+}
+
+/**-------------------------------for shift register--------------------------------------------**/
+
 
 unsigned char GetBit(unsigned char C, unsigned char index){
 	unsigned char maskValue = 0x01 << index;
@@ -158,6 +231,7 @@ int updateStart(int state){
 		case updateStart_start:
 			if( startButton ){
 				start = 0x01;
+				PORTB = 0x01;
 			}
 			break;
 		case updateStart_next:
@@ -196,7 +270,7 @@ int displayUpdate(int state){
 	
 	switch (state) { 
 		case display_start:
-			PORTC= columnOutput;
+			HC595Write(columnOutput);
 			PORTD= rowOutput;
 			break;
 		default:

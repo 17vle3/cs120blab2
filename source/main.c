@@ -1,5 +1,4 @@
 /*	Author: vle018
- *  Partner(s) Name: Mari Hayashi
  *	Lab Section:
  *
  *	I acknowledge all content contained herein, excluding template or example
@@ -8,6 +7,14 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "io.h"
+
+#define zero ~PINA & 0x01
+#define one (~PINA & 0x02)>>1
+#define two (~PINA & 0x04)>>2
+#define three (~PINA & 0x08)>>3
+#define startButton (~PINA & 0x10)>>4
+
+
 unsigned char GetBit(unsigned char C, unsigned char index){
 	unsigned char maskValue = 0x01 << index;
 	return ((C & maskValue) == 0x00) ? 0x00 : 0x01;
@@ -77,107 +84,134 @@ void PWM_off(){
 	TCCR3A = 0x00;
 	TCCR3B = 0x00;
 }
-unsigned char GetKeypadKey(){
-	PORTA = 0xEF;
-	asm("nop");
-	if(GetBit(PINA,0) == 0) {return ('1');}
-	if(GetBit(PINA,1) == 0) {return ('4');}
-	if(GetBit(PINA,2) == 0) {return ('7');}
-	if(GetBit(PINA,3) == 0) {return ('*');}
-	PORTA = 0xDF;
-	asm("nop");
-	if(GetBit(PINA,0) == 0) {return ('2');}
-	if(GetBit(PINA,1) == 0) {return ('5');}
-	if(GetBit(PINA,2) == 0) {return ('8');}
-	if(GetBit(PINA,3) == 0) {return ('0');}
-	PORTA = 0xBF;
-	asm("nop");
-	if(GetBit(PINA,0) == 0) {return ('3');}
-	if(GetBit(PINA,1) == 0) {return ('6');}
-	if(GetBit(PINA,2) == 0) {return ('9');}
-	if(GetBit(PINA,3) == 0) {return ('#');}
-	PORTA = 0x7F;
-	asm("nop");
-	if(GetBit(PINA,0) == 0) {return ('A');}
-	if(GetBit(PINA,1) == 0) {return ('B');}
-	if(GetBit(PINA,2) == 0) {return ('C');}
-	if(GetBit(PINA,3) == 0) {return ('D');}
-	return ('\0');
-}
-//------------------Shared Variables----------------
+//------------------Shared Variables for MATRIX----------------
 unsigned char col[8] = {0b11111110,0b11111101,0b11111011,0b11110111,0b11101111,0b11011111,0b10111111,0b01111111};
-unsigned char row[4] = {0b01100010,0b01100100, 0b01101000,0b01110000};
-unsigned char columnOutput = 0x00;
-static unsigned char rowOutput = 0x00;
+unsigned char row[4] = {0b01100010,0b01100100, 0b01101000,0b01110000, 0b01111110 }; //0 1 2 3 all
+static unsigned char columnIndex =0;
+unsigned char columnOutput = 0x00; //THE PORTC OUTPUT
+static unsigned char rowOutput = 0x00; //THE PORTD OUTPUT
 unsigned char colCheck[8] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
-unsigned const char song[] = {0}; //possible 0 1 2 3 01 02 12 13 23 012 etc 
-unsigned const char songSize = 1;
+unsigned const char song[] = {4, 0 ,1,2,3}; //possible 0 1 2 3 01 02 12 13 23 012 etc 
+unsigned const char songSize = 5;
 static unsigned char songIndex = 0;
 static unsigned char existingColumns = 0; //which columns exist right now in binary 0x00 = none 0x01 = top column 0x02 = second column etc 
-
+//------------------Shared Variables for POINTS----------------
+unsigned static char points= 0;
+unsigned static char start= 0;
 //------------------End Shared Variables----------------
 /**
  * This function moves the dots down by 1 row
  * This should be updated at the same speed as the display.
  **/
-typedef enum updateColumnsStates{updateColumns_start} updateColumnsStates;
-int updateColumns(){
+typedef enum updateColumnsStates{updateColumns_start, updateColumns_next} updateColumnsStates;
+int updateColumns(int state){
+	if(!start){
+		return state;
+	}
+	static unsigned char time = 0;
 	//function for adding new column here
-	
 	switch (state) { 
 		case updateColumns_start:
-			int i;
-			columnOutput = columnOutput<< 1;
-			for(i = 0; i < 8 ; i++){
-				if(existingColumns & colCheck[i]){
-					columnOutput = columnOutput&col[i];
-				}
-			} 
+			columnOutput = 0b11111110;
+			state= updateColumns_next;
+			break;
+		case updateColumns_next:
+			
 			break;
 		default:
 			break;
 	}
-	return updateColumns_start;
+	switch (state) { 
+		case updateColumns_start:
+			state= updateColumns_next;
+			break;
+		case updateColumns_next:
+			
+			if(columnIndex>7){
+				columnIndex=0;
+			}
+			columnOutput= col[columnIndex];
+			columnIndex++;
+			break;
+		default:
+			break;
+	}
+	
+	if(time >= 8){
+			if(songIndex>=songSize){
+				songIndex=0;
+			}
+			rowOutput= row[song[songIndex]];
+			songIndex++;
+			time = 0;
+	}
+	time++;
+	return state;
 }
 /**
  * This function adds a dot at the top 
  **/
-typedef enum newDotStates{updateNewDot_start} newDotStates;
-int updateNewDot(){
+typedef enum startButtonStates{updateStart_start, updateStart_next} startButtonStates;
+int updateStart(int state){
 	//function for adding new column here
-	
 	switch (state) { 
-		case updateNewDot_start:
-			if(songIndex >= songSize){
-				break;
+		case updateStart_start:
+			if( startButton ){
+				start = 0x01;
+				PORTB = 0x01;
 			}
-			if()
+			break;
+		case updateStart_next:
+			
 			break;
 		default:
 			break;
 	}
-	return updateColumns_start;
+	return state;
 }
 
+typedef enum displayStates{display_start} displayStates;
+int displayUpdate(int state){
+	
+	switch (state) { 
+		case display_start:
+			PORTC= columnOutput;
+			PORTD= rowOutput;
+			break;
+		default:
+			break;
+	}
+	return state;
+}
 
 int main(void) {
-	DDRB = 0x00; PORTB = 0xFF;
+	DDRA = 0x00; PORTA = 0xFF;
+	DDRB = 0xFF; PORTB = 0x00;
 	DDRC = 0xFF; PORTC = 0x00;
 	DDRD = 0xFF; PORTD = 0x00;
 	
-	int i;
-	
-	static task task1,task2;
-	task *tasks[] = {&task1, &task2};
+	static task task1, task2, task3;
+	task *tasks[] = {&task1, &task2, &task3};
 	const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
 	
 	//task 1
-	task1.state = rollDown_start;
-	task1.period = 30;
+	task1.state = updateColumns_start;
+	task1.period = 200;
 	task1.elapsedTime = task1.period;
-	task1.TickFct = &rollDownUpdate; 
+	task1.TickFct = &updateColumns; 
 	
 	
+	//task 2
+	task2.state = updateStart_start;
+	task2.period = 20;
+	task2.elapsedTime = task2.period;
+	task2.TickFct = &updateStart; 
+	
+	//task 3
+	task3.state = display_start;
+	task3.period = 20;
+	task3.elapsedTime = task3.period;
+	task3.TickFct = &displayUpdate; 
 	
 	
 	TimerSet(10);
@@ -186,22 +220,20 @@ int main(void) {
 	
 	
 	LCD_init();
-	
+	int i;
 	while (1) {
-		/**
+		
 		for(i = 0; i<numTasks; i++){
 			if(tasks[i]->elapsedTime == tasks[i]->period){
 				tasks[i]->elapsedTime = tasks[i]->TickFct(tasks[i]->state);
 				tasks[i]->elapsedTime = 0;
 			}
 			tasks[i]->elapsedTime +=10;
-		}**/
-		
-		PORTC = 0b11111110;
-		PORTD = 0b01111110;
-		
+		}
 		while(!TimerFlag);
 		TimerFlag = 0;
+		
+		
 	}
     
     return 0;

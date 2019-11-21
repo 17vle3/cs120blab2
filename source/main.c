@@ -7,6 +7,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "io.h"
+#include <util/delay.h>
 
 #define zero ~PINA & 0x01
 #define one (~PINA & 0x02)>>1
@@ -15,13 +16,13 @@
 #define startButton (~PINA & 0x10)>>4
 
 /**-------------------------------for shift register--------------------------------------------**/
-#define HC595_PORT   PORTD
-#define HC595_DDR    DDRD
+#define HC595_PORT   PORTC
+#define HC595_DDR    DDRC
 
-#define HC595_DS_POS ~PIND & 0x01      //Data pin (DS) pin location
+#define HC595_DS_POS ~PINC & 0x01      //Data pin (DS) pin location
 
-#define HC595_SH_CP_POS PB1 (~PIND & 0x02)>>1     //Shift Clock (SH_CP) pin location 
-#define HC595_ST_CP_POS PB2  (~PIND & 0x04)>>2
+#define HC595_SH_CP_POS (~PINC & 0x02)>>1     //Shift Clock (SH_CP) pin location 
+#define HC595_ST_CP_POS  (~PINC & 0x04)>>2    //Store Clock (ST_CP) pin location
  
 void HC595Init()
 {
@@ -59,7 +60,8 @@ void HC595Write(uint8_t data)
    //Send each 8 bits serially
 
    //Order is MSB first
-   for(uint8_t i=0;i<8;i++)
+   int i;
+   for( i =0;i<8;i++)
    {
       //Output the data on DS line according to the
       //Value of MSB
@@ -84,7 +86,14 @@ void HC595Write(uint8_t data)
    //Move them to output latch at one
    HC595Latch();
 }
-
+void Wait()
+{
+	int i;
+   for(i=0;i<30;i++)
+   {
+      _delay_loop_2(0);
+   }
+}
 /**-------------------------------for shift register--------------------------------------------**/
 
 
@@ -171,6 +180,7 @@ static unsigned char existingColumns = 0; //which columns exist right now in bin
 //------------------Shared Variables for POINTS----------------
 unsigned static char points= 0;
 unsigned static char start= 0;
+unsigned char rightButtonPressed;
 //------------------End Shared Variables----------------
 /**
  * This function moves the dots down by 1 row

@@ -15,85 +15,55 @@
 #define three (~PINA & 0x08)>>3
 #define startButton (~PINA & 0x10)>>4
 
-/**-------------------------------for shift register--------------------------------------------**/
-#define HC595_PORT   PORTC
-#define HC595_DDR    DDRC
+#define SHIFTREG_SRCLK_PIN 0
+#define SHIFTREG_RCLK_PIN 1
+#define SHIFTREG_DATA1_PIN 2
 
-#define HC595_DS_POS ~PINC & 0x01      //Data pin (DS) pin location
+/**-------------------------------for shift register--------------------------------------------**/  
+void writetoShiftRegister(unsigned char data1){
+	
+	//while writing data to register, RCLK is held low, when it goes high values are 
+	//latched to the storage register and pins Q7:0.
+	PORTB &= ~(1 << SHIFTREG_RCLK_PIN);
+		
+	//Now serial write cycle begins.
+	//When SRCLK goes from 0 to 1, the DATA# 
+	//line's value shifts into the shift register. 
+	//Looped 16x from MSB to LSB.
+	
+	int i;	
+	for ( i = 7; i >=0; i--){
+		
+		//1 data bit is written to each shift register and the clock is set high.
+		unsigned char bitToWrite =  ((data1 >> i) & 0x01 );
+		if(bitToWrite){PORTB |= (bitToWrite << SHIFTREG_DATA1_PIN);}
+		else{PORTB &= ~(1 << SHIFTREG_DATA1_PIN);}
+		
+		int k;
+		for(k = 0; k < 50; k++){
+			asm("nop");
+		}
+		
+		//Tick Clock, wait, tick other direction
+		PORTB |= (1<< SHIFTREG_SRCLK_PIN);
+		for( k = 0; k < 50; k++){ //500 is one milisecond
+			asm("nop");
+		}
+		PORTB &= ~(1 << SHIFTREG_SRCLK_PIN);
+		for( k = 0; k < 50; k++){
+			asm("nop");
+		}
+		
+		
+	}
+	
+	//latch values form shift register to output pins 
+	//after each of the 16 bits has been looped through;
+	PORTB |= (1<< SHIFTREG_RCLK_PIN);
 
-#define HC595_SH_CP_POS (~PINC & 0x02)>>1     //Shift Clock (SH_CP) pin location 
-#define HC595_ST_CP_POS  (~PINC & 0x04)>>2    //Store Clock (ST_CP) pin location
- 
-void HC595Init()
-{
-   //Make the Data(DS), Shift clock (SH_CP), Store Clock (ST_CP) lines output
-   HC595_DDR|=((1<<HC595_SH_CP_POS)|(1<<HC595_ST_CP_POS)|(1<<HC595_DS_POS));
 }
-#define HC595DataHigh() (HC595_PORT|=(1<<HC595_DS_POS))
 
-#define HC595DataLow() (HC595_PORT&=(~(1<<HC595_DS_POS)))
 
-//Sends a clock pulse on SH_CP line
-void HC595Pulse()
-{
-   //Pulse the Shift Clock
-
-   HC595_PORT|=(1<<HC595_SH_CP_POS);//HIGH
-
-   HC595_PORT&=(~(1<<HC595_SH_CP_POS));//LOW
-
-}
-
-//Sends a clock pulse on ST_CP line
-void HC595Latch()
-{
-   //Pulse the Store Clock
-
-   HC595_PORT|=(1<<HC595_ST_CP_POS);//HIGH
-   _delay_loop_1(1);
-
-   HC595_PORT&=(~(1<<HC595_ST_CP_POS));//LOW
-   _delay_loop_1(1);
-}
-void HC595Write(uint8_t data)
-{
-   //Send each 8 bits serially
-
-   //Order is MSB first
-   int i;
-   for( i =0;i<8;i++)
-   {
-      //Output the data on DS line according to the
-      //Value of MSB
-      if(data & 0b10000000)
-      {
-         //MSB is 1 so output high
-
-         HC595DataHigh();
-      }
-      else
-      {
-         //MSB is 0 so output high
-         HC595DataLow();
-      }
-
-      HC595Pulse();  //Pulse the Clock line
-      data=data<<1;  //Now bring next bit at MSB position
-
-   }
-
-   //Now all 8 bits have been transferred to shift register
-   //Move them to output latch at one
-   HC595Latch();
-}
-void Wait()
-{
-	int i;
-   for(i=0;i<30;i++)
-   {
-      _delay_loop_2(0);
-   }
-}
 /**-------------------------------for shift register--------------------------------------------**/
 
 
@@ -241,7 +211,7 @@ int updateStart(int state){
 		case updateStart_start:
 			if( startButton ){
 				start = 0x01;
-				PORTB = 0x01;
+				PORTC = 0x01;
 			}
 			break;
 		case updateStart_next:
@@ -280,7 +250,7 @@ int displayUpdate(int state){
 	
 	switch (state) { 
 		case display_start:
-			HC595Write(columnOutput);
+			writetoShiftRegister(columnOutput);
 			PORTD= rowOutput;
 			break;
 		default:
@@ -332,6 +302,7 @@ int main(void) {
 	
 	LCD_init();
 	int i;
+	
 	while (1) {
 		
 		for(i = 0; i<numTasks; i++){

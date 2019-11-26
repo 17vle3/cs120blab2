@@ -69,6 +69,14 @@ int joyStickRight() {
 	unsigned short ADCValue = ADC;
 	return (ADCValue > 700) ? true : false;
 }
+int joyStickDown() {
+	unsigned short ADCValue = ADC;
+	return (ADCValue < 300) ? true : false;
+}
+int joyStickLeft() {
+	unsigned short ADCValue = ADC;
+	return (ADCValue < 300) ? true : false;
+}
 void set_PWM(double frequency){
 	static double current_frequency;
 	if(frequency != current_frequency){

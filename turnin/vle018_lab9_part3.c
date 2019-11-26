@@ -8,6 +8,24 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "io.h"
+
+//A, B, C♯, D, E, F♯, and G♯
+#define b 246.94
+#define c 277.18
+#define d 293.66
+#define e 329.63
+#define f 369.99
+#define g 415.3
+#define a2 440
+#define b2 493.88
+#define c2 554.37
+#define d2 587.33
+#define e2 659.26
+#define f2 739.99
+#define g2 830.61
+
+
+
 typedef enum States{start, play, done, waitRelease, waitPress, waitRelease2 } States;
 volatile unsigned char TimerFlag = 0;
 
@@ -90,13 +108,13 @@ int stateUpdate(int state){
 	unsigned char a1 = ((~PINA & 0x0F) & 0x02)>>1;
 	unsigned char a2 = ((~PINA & 0x0F) & 0x04)>>2;
 	static unsigned char time = 0x00;
-	unsigned char zero = ((~PINA & 0x0F) == 0x00);                         //f c a# g d# f f d# f f g f d#
-	double arr[31] = {466.16,  466.16, 392.00, 523.25 , 392.00, 311.13, 349.23,//a# a# g c g d# f 6 
-		0, 349.23 , 311.13, 349.23, 311.13, 349.23, 0, 349.23, 0, //pause f 10
-		349.23,523.25,466.16, 392.00,311.13,   349.23, 0 , 349.23,311.13, 349.23, 0 , 349.23,392.00, 349.23, 311.13}; //15
-	double arr1[31] = {10,10,10,10,10,10,20,
-		1,10,10,20,10,20,1,20,1,
-		10,10,10,10,10,  20,1,10,10,10,1,10,10,10};
+	unsigned char zero = ((~PINA & 0x0F) == 0x00);                         //f e c b a e c b a
+	double arr[31] = {a2, f2, e2, c2, b2,    a2, e2, c2, b2, a2,    0,
+		f2,e2,c2,b2,a2,    b2,a2,b2,a2,e2,    c,b2,a2,
+		e,f,c2,b2,f2,    e2,c2,b2,a2,0,   f2,e2,c2,b2,a2,    b2,a2,b2,a2,e2,    c2,b2,a2}; //15
+	double arr1[31] = {20,10,20,20,20,   20,20,10,10,20,    20,
+		10,10,10,10,10,   10,10,10,10,10,    10,10,20, //1 2 2 2 2    2 1 1 2 2 
+		10,20,20,20,20,   20,10,20,20,10,    10,10,10,10,10,   10,10,10,10,10,  10,10,10 };
 	static unsigned char index=0;
 	static double freq=0;
 	switch (state) { //transitions

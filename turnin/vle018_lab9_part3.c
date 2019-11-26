@@ -10,19 +10,7 @@
 #include "io.h"
 
 //A, B, C♯, D, E, F♯, and G♯
-#define b 246.94
-#define c 277.18
-#define d 293.66
-#define e 329.63
-#define f 369.99
-#define g 415.3
-#define a2 440
-#define b2 493.88
-#define c2 554.37
-#define d2 587.33
-#define e2 659.26
-#define f2 739.99
-#define g2 830.61
+
 
 
 
@@ -62,23 +50,27 @@ void ADC_init(){
 }
 void set_PWM(double frequency){
 	static double current_frequency;
-	if(frequency != current_frequency){
-		if(!frequency){ TCCR3B &= 0x08; }
-		else {TCCR3B |= 0x03;}
-		
-		if(frequency < 0.954) { OCR3A = 0xFFFF;}
-		else if (frequency > 31250){ OCR3A = 0x0000;}
-		else {OCR3A = (short) (8000000/(128 * frequency)) - 1;}
-		
-		TCNT3 = 0;
-		current_frequency = frequency;
+	
+	if (frequency != current_frequency){
+	if (!frequency) { TCCR3B &= 0x08; }
+	else { TCCR3B |= 0x03; }
+
+	if (frequency < 0.954) { OCR3A = 0xFFFF; }
+	else if (frequency > 31250) { OCR3A = 0x0000; }
+
+	else { OCR3A = (short) (8000000 / (128 * frequency)) - 1; }
+
+	TCNT3 = 0;
+	current_frequency = frequency;
 	}
 }
+
 void PWM_on(){
 	TCCR3A = (1 << COM3A0);
-	TCCR3B = (1 << WGM32) | (1 << CS31) | (1  << CS30);
+	TCCR3B = (1 << WGM32) | (1 << CS31) | (1 << CS30);
 	set_PWM(0);
 }
+
 void PWM_off(){
 	TCCR3A = 0x00;
 	TCCR3B = 0x00;
@@ -88,11 +80,11 @@ int main(void) {
 	DDRA = 0x00; PORTA = 0xFF; //port b = output 
 	
 	//LCD_init();
-	TimerSet(25);
+	TimerSet(3);
 	TimerOn();
 	PWM_on();
 	
-	States state = start;
+	States state = play;
 	//ADC_init();
 	while (1) {	
 		state = stateUpdate(state);
@@ -104,34 +96,52 @@ int main(void) {
 }
 
 int stateUpdate(int state){
+	double b = 987.77	;
+double c = 1108.73;
+double d = 1174.66;
+double e = 1318.51;
+double f = 1479.98;
+double g = 1661.22;
+double a2= 1760.00;
+double b2 =1975.53;
+double c2 = 2217.46;
+double d2 =2349.32;
+double e2 =2637.02;
+double f2 =2959.96	;
+double g2 =3322.44;
+
 	unsigned char a0 = (~PINA & 0x0F) & 0x01;
 	unsigned char a1 = ((~PINA & 0x0F) & 0x02)>>1;
-	unsigned char a2 = ((~PINA & 0x0F) & 0x04)>>2;
+	//unsigned char a2 = ((~PINA & 0x0F) & 0x04)>>2;
 	static unsigned char time = 0x00;
 	unsigned char zero = ((~PINA & 0x0F) == 0x00);                         //f e c b a e c b a
-	double arr[31] = {a2, f2, e2, c2, b2,    a2, e2, c2, b2, a2,    0,
-		f2,e2,c2,b2,a2,    b2,a2,b2,a2,e2,    c,b2,a2,
+	double arr[72] = {a2,f2,e2,c2,b2,    a2,e2,c2,b2,a2,    0,
+		f2,e2,c2,b2,a2,    b2,a2,b2,a2,e2,    c,b2,a2,0,
+		f2, e2, c2, b2,    a2, e2, c2, b2, a2,    0,
+		f2,e2,c2,b2,a2,    b2,a2,b2,a2,e2,    c,b2,a2,0,
 		e,f,c2,b2,f2,    e2,c2,b2,a2,0,   f2,e2,c2,b2,a2,    b2,a2,b2,a2,e2,    c2,b2,a2}; //15
-	double arr1[31] = {20,10,20,20,20,   20,20,10,10,20,    20,
-		10,10,10,10,10,   10,10,10,10,10,    10,10,20, //1 2 2 2 2    2 1 1 2 2 
-		10,20,20,20,20,   20,10,20,20,10,    10,10,10,10,10,   10,10,10,10,10,  10,10,10 };
+	double arr1[72] = {20,10,20,20,20,   20,20,10,10,20,    20,
+		10,10,10,10,10,   10,10,10,10,10,    10,10,20,20, //1 2 2 2 2    2 1 1 2 2 
+		10,20,20,20,   20,20,10,10,20,    20,
+		10,10,10,10,10,   10,10,10,10,10,    10,10,20,20,
+		10,20,20,20,20,   20,10,20,20,20,    10,10,10,10,10,   10,10,10,10,10,  10,10,10 };
 	static unsigned char index=0;
 	static double freq=0;
 	switch (state) { //transitions
 		case start:
-			if(a0){
+			//if((~PINA) & 0x01){
 				state = play;
 				time = 0x00;
-			}
+			//}
 			break;
 		case play:
 			if(time<=arr1[index]){
-				freq = arr[index];
+				freq = arr[index] ;
 				time++; 
 				break;
 			}
 			else {
-				if(index < 31){
+				if(index < 72){
 					index = index + 1;
 					time = 0;
 					break;

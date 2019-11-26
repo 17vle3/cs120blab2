@@ -61,6 +61,14 @@ void TimerSet (unsigned long M){
 void ADC_init(){
 	ADCSRA |= (1<<ADEN) | (1<< ADSC) | (1<<ADATE);
 }
+int joyStickUp() {
+	unsigned short ADCValue = ADC;
+	return (ADCValue > 700) ? true : false;
+}
+int joyStickRight() {
+	unsigned short ADCValue = ADC;
+	return (ADCValue > 700) ? true : false;
+}
 void set_PWM(double frequency){
 	static double current_frequency;
 	if(frequency != current_frequency){

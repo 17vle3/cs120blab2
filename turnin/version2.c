@@ -24,7 +24,7 @@ void writetoShiftRegister(unsigned char data1){
 	
 	//while writing data to register, RCLK is held low, when it goes high values are 
 	//latched to the storage register and pins Q7:0.
-	PORTB &= ~(1 << SHIFTREG_RCLK_PIN);
+	PORTC &= ~(1 << SHIFTREG_RCLK_PIN);
 		
 	//Now serial write cycle begins.
 	//When SRCLK goes from 0 to 1, the DATA# 
@@ -36,21 +36,21 @@ void writetoShiftRegister(unsigned char data1){
 		
 		//1 data bit is written to each shift register and the clock is set high.
 		unsigned char bitToWrite =  ((data1 >> i) & 0x01 );
-		if(bitToWrite){PORTB |= (bitToWrite << SHIFTREG_DATA1_PIN);}
-		else{PORTB &= ~(1 << SHIFTREG_DATA1_PIN);}
+		if(bitToWrite){PORTC |= (bitToWrite << SHIFTREG_DATA1_PIN);}
+		else{PORTC &= ~(1 << SHIFTREG_DATA1_PIN);}
 		
 		int k;
-		for(k = 0; k < 50; k++){
+		for(k = 0; k < 10; k++){
 			asm("nop");
 		}
 		
 		//Tick Clock, wait, tick other direction
-		PORTB |= (1<< SHIFTREG_SRCLK_PIN);
-		for( k = 0; k < 50; k++){ //500 is one milisecond
+		PORTC |= (1<< SHIFTREG_SRCLK_PIN);
+		for( k = 0; k < 10; k++){ //500 is one milisecond
 			asm("nop");
 		}
-		PORTB &= ~(1 << SHIFTREG_SRCLK_PIN);
-		for( k = 0; k < 50; k++){
+		PORTC &= ~(1 << SHIFTREG_SRCLK_PIN);
+		for( k = 0; k < 10; k++){
 			asm("nop");
 		}
 		
@@ -59,7 +59,7 @@ void writetoShiftRegister(unsigned char data1){
 	
 	//latch values form shift register to output pins 
 	//after each of the 16 bits has been looped through;
-	PORTB |= (1<< SHIFTREG_RCLK_PIN);
+	PORTC |= (1<< SHIFTREG_RCLK_PIN);
 
 }
 
@@ -211,7 +211,7 @@ int updateStart(int state){
 		case updateStart_start:
 			if( startButton ){
 				start = 0x01;
-				PORTC = 0x01;
+				PORTB = 0x01;
 			}
 			break;
 		case updateStart_next:
@@ -302,6 +302,11 @@ int main(void) {
 	
 	LCD_init();
 	int i;
+	
+	
+	int tmp = 1<<JTD; // Disable JTAG
+	MCUCR = tmp; // Disable JTAG
+	MCUCR = tmp; // Disable JTAG
 	
 	while (1) {
 		

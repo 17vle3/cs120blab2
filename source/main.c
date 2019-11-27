@@ -20,43 +20,21 @@
 #define SHIFTREG_RCLK_PIN 2
 #define SHIFTREG_DATA1_PIN 3
 
-/**
-void transmit_data(unsigned char data){
-	int i;	
-	for (i = 0; i < 8 ; ++i){
-		//set SRCLEAR to 1
-		PORTC = PORTC |= 0x01;
-		
-		//clear SRCLK
-		PORTC = PORTC & ~(0x02);
-		
-		//set SEr = next bit of data to be sent
-		PORTC |= ((data >> i) & 0x01);
-		
-		//set SRCLK = 1
-		PORTC = PORTC |= (0x02);
-	}
-	//set RCLK to 1
-	PORTC = PORTC |= (0x04);
-	PORTC = PORTC &= 0b11110000;
-}**/
-
-
 void transmit_data(unsigned char data) {
 	int i;
 	for (i = 0; i < 8 ; ++i) {
 		// Sets SRCLR to 1 allowing data to be set
 		// Also clears SRCLK in preparation of sending data
-		PORTB = 0x08;
+		PORTC = 0x08;
 		// set SER = next bit of data to be sent.
-		PORTB |= ((data >> i) & 0x01);
+		PORTC |= ((data >> i) & 0x01);
 		// set SRCLK = 1. Rising edge shifts next bit of data into the shift register
-		PORTB |= 0x02;
+		PORTC |= 0x02;
 	}
 	// set RCLK = 1. Rising edge copies data from “Shift” register to “Storage” register
-	PORTB |= 0x04;
+	PORTC |= 0x04;
 	// clears all lines in preparation of a new transmission
-	PORTB = 0x00;
+	PORTC = 0x00;
 }	
 /** SRCLOCK = 1
  * RCLOCK = 2

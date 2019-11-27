@@ -36,58 +36,6 @@ void transmit_data(unsigned char data) {
 	// clears all lines in preparation of a new transmission
 	PORTC = 0x00;
 }	
-/** SRCLOCK = 1
- * RCLOCK = 2
- * SRClEAR = 3
- * SER = 0 **/
-
-/**-------------------------------for shift register--------------------------------------------**/  
-void writetoShiftRegister(unsigned char data1){
-	
-	//while writing data to register, RCLK is held low, when it goes high values are 
-	//latched to the storage register and pins Q7:0.
-	PORTC &= ~(1 << SHIFTREG_RCLK_PIN);
-		
-	//Now serial write cycle begins.
-	//When SRCLK goes from 0 to 1, the DATA# 
-	//line's value shifts into the shift register. 
-	//Looped 16x from MSB to LSB.
-	
-	int i;	
-	for ( i = 7; i >=0; i--){
-		
-		//1 data bit is written to each shift register and the clock is set high.
-		unsigned char bitToWrite =  ((data1 >> i) & 0x01 );
-		if(bitToWrite){PORTC |= (bitToWrite << SHIFTREG_DATA1_PIN);}
-		else{PORTC &= ~(1 << SHIFTREG_DATA1_PIN);}
-		
-		int k;
-		for(k = 0; k < 10; k++){
-			asm("nop");
-		}
-		
-		//Tick Clock, wait, tick other direction
-		PORTC |= (1<< SHIFTREG_SRCLK_PIN);
-		for( k = 0; k < 10; k++){ //500 is one milisecond
-			asm("nop");
-		}
-		PORTC &= ~(1 << SHIFTREG_SRCLK_PIN);
-		for( k = 0; k < 10; k++){
-			asm("nop");
-		}
-		
-		
-	}
-	
-	//latch values form shift register to output pins 
-	//after each of the 16 bits has been looped through;
-	PORTC |= (1<< SHIFTREG_RCLK_PIN);
-
-}
-
-
-/**-------------------------------for shift register--------------------------------------------**/
-
 
 unsigned char GetBit(unsigned char C, unsigned char index){
 	unsigned char maskValue = 0x01 << index;

@@ -293,57 +293,34 @@ int scoreUpdate(int state){
 	
 	return state;
 }
-typedef enum joystickStates{joystick_start,joystick_middle,joystick_wait} joystickStates;
+typedef enum joystickStates{joystick_start,joystick_wait} joystickStates;
 int joystickUpdate(int state){
-	
-	LRTemp = adc_read(0);
-	UDTemp =  adc_read(1);
-	
+	static unsigned char bOutput = 0x04;
+
+	unsigned int LRTemp = adc_read(0);
+
 	switch (state) { 
 		case joystick_start:
+			if(LRTemp > 800 && bOutput < 8){ //right
+				bOutput = bOutput << 1;
+			}
+			if(LRTemp < 400 && bOutput > 1){
+				bOutput = bOutput >> 1;
+			}
 			state = joystick_wait;
 			break;
-		case joystick_wait:
-			state = joystick_middle;
-			break;
-		case joystick_middle:
-			if(LRTemp >= 400 | LRTemp <= 800){
-				state = joystick_wait;
+		case joystick_wait:{
+			if(LRTemp > 550 && LRTemp < 580){
+				state = joystick_start;
 			}
-			break;
+		}
 		default:
 			break;
 	}
-	
-	switch (state) { 
-		case joystick_start:
-			bOutput = 0x04;
-			break;
-		case joystick_wait:
-			if(LRTemp > 800 && bOutput < 0x08){ //right
-				bOutput = bOutput >>1;
-			}
-			if(LRTemp < 400 && bOutput > 0x01){
-				bOutput = bOutput <<1;
-			}
-			break;
-		case joystick_middle:
-			break;
-		default:
-			break;
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	PORTB = bOutput;
+
 	return state;
 }
-
 typedef enum displayStates{display_start} displayStates;
 int displayUpdate(int state){
 	
@@ -409,8 +386,8 @@ int main(void) {
 	task2.TickFct = &updateStart; 
 	
 	//task6
-	task6.state = joystick_wait;
-	task6.period = 20;
+	task6.state = joystick_start;
+	task6.period = 100;
 	task6.elapsedTime = task6.period;
 	task6.TickFct = &joystickUpdate; 
 	

@@ -139,13 +139,13 @@ int joystickUpdate(int state){
 
 	switch (state) { 
 		case joystick_start:
-			if(LRTemp > 800 && bOutput < 8){ //right
+			if(LRTemp > 800 && bOutput < 0x08){ //right
 				bOutput = bOutput << 1;
 			}
-			if(LRTemp < 400 && bOutput > 1){
+			if(LRTemp < 400 && bOutput > 0x1){
 				bOutput = bOutput >> 1;
 			}
-			state = joystick_wait;
+			//state = joystick_wait;
 			break;
 		case joystick_wait:{
 			if(LRTemp > 550 && LRTemp < 580){
@@ -181,7 +181,7 @@ int main(void) {
 	while (1) {
 		unsigned int LRTemp = adc_read(0);
 		//bigger than 550 less than 580
-		joystickUpdate(state);
+		state = joystickUpdate(state);
 		while(!TimerFlag);
 		TimerFlag = 0;
 		

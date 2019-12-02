@@ -11,18 +11,14 @@
 #include "io.h"
 #include <util/delay.h>
 
-#define zero (~PINA & 0x01)
-#define one (~PINA & 0x02)>>1
-#define two (~PINA & 0x04)>>2
-#define three (~PINA & 0x08)>>3
-#define startButton (~PINA & 0x10)>>4
+#define startButton (~PINA & 0x02)>>1
 
 
 void transmit_data(unsigned char data) {
 	int i;
 	for (i = 0; i < 8 ; ++i) {
 		// Sets SRCLR to 1 allowing data to be set
-		// Also clears SRCLK in preparation of sending data
+		// Also clears SRCLK i0n preparation of sending data
 		PORTC = 0x01;
 		// set SER = next bit of data to be sent.
 		PORTC |= ((data >> i) & 0x08);
@@ -130,41 +126,265 @@ unsigned short ADC_Scaler(unsigned short max, unsigned short value, unsigned cha
     }
     return position;
 }
+
+//------------------Shared Variables for MATRIX----------------
+unsigned char col[8] = {0b01111111,0b10111111,0b11011111,0b11101111,0b11110111,0b11111011,0b11111101,0b11111110};
+
+unsigned char row[4] = {0b01100010,0b01100100, 0b01101000,0b01110000, 0b01111110 }; //0 1 2 3 all
+static unsigned char columnIndex =0;
+unsigned char columnOutput = 0x00; //THE PORTC OUTPUT
+static unsigned char rowOutput = 0x00; //THE PORTD OUTPUT
+unsigned char colCheck[8] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
+unsigned const char song[] = {2,1,0,1,2  ,2,2,1,1,1,   2,3,3,2,1,   0,1,2,2,2,   1,1,2,1,0}; //possible 0 1 2 3 01 02 12 13 23 012 etc 
+unsigned const char songSize = 25;
+static unsigned char songIndex = 0;
+static unsigned char existingColumns = 0; //which columns exist right now in binary 0x00 = none 0x01 = top column 0x02 = second column etc 
+//------------------Shared Variables for POINTS----------------
+unsigned static char points= 0;
+unsigned static char start= 1;
+unsigned char rightButtonPressed;
+unsigned short LRTemp, UDTemp;
+static unsigned char bOutput = 0x04;
+//------------------End Shared Variables----------------
+
+typedef enum song_states{song_start, song_play, song_done, song_waitRelease, song_waitPress, song_waitRelease2 } song_states;
+int song_Update(int state){
+double c = 261.63	;
+double d = 293.66	;
+double e = 329.63;
+double g = 392 ;
+
+
+	unsigned char a0 = (~PINA & 0x0F) & 0x01;
+	unsigned char a1 = ((~PINA & 0x0F) & 0x02)>>1;
+	//unsigned char a2 = ((~PINA & 0x0F) & 0x04)>>2;
+	static unsigned char time = 0x00;
+	//unsigned char zero = ((~PINA & 0x0F) == 0x00);                         //f e c b a e c b a
+	double arr[] = {0,  e,d,c,d,e,  e,e,d,d,d   ,e,g,g,e,d,    c,d,e,e,e,    d,d,e,d,c}; //23
+	double arr1[] = {2500,   1000,1000,1000,1000,1000, 
+		1000,1000,1000,1000,1000,     1000,1000,1000,1000,1000,   1000,1000,1000,1000,1000,
+		1000,1000,1000,1000,1000 };
+	static unsigned char index=0;
+	static double freq=0;
 	
-typedef enum joystickStates{joystick_start,joystick_wait} joystickStates;
+	switch (state) { //transitions
+		case song_start:
+			//if((~PINA) & 0x01){
+				state = song_play;
+				time = 0x00;
+			//}
+			break;
+		case song_play:
+			if(time<=arr1[index]){
+				freq = arr[index] ;
+				time++; 
+				break;
+			}
+			else {
+				if(index < 26){
+					index = index + 1;
+					time = 0;
+					break;
+				}
+				else{
+					state = song_done;	
+				}
+				break;
+			}
+			break;
+		case song_done:
+			break;
+		default:
+			break;
+	}
+	set_PWM(freq);
+	return state;
+	
+}
+/**
+ * This function moves the dots down by 1 row
+ * This should be updated at the same speed as the display.
+ **/
+typedef enum updateColumnsStates{updateColumns_start, updateColumns_next} updateColumnsStates;
+int updateColumns(int state){
+	static unsigned char time = 0;
+	//function for adding new column here
+	switch (state) { 
+		case updateColumns_start:
+			columnOutput = 0b01111110;
+			state= updateColumns_next;
+			break;
+		case updateColumns_next:
+			
+			break;
+		default:
+			break;
+	}
+	switch (state) { 
+		case updateColumns_start:
+			state= updateColumns_next;
+			break;
+		case updateColumns_next:
+			
+			if(columnIndex>7){
+				columnIndex=0;
+			}
+			columnOutput= col[columnIndex];
+			columnIndex++;
+			break;
+		default:
+			break;
+	}
+	
+	if(time >= 8){
+			if(songIndex>= songSize){
+				rowOutput = 0x00;
+			}
+			else{
+				rowOutput= row[song[songIndex]];
+				songIndex++;
+				time = 0;
+			}
+	}
+	time++;
+	return state;
+}
+/**
+ * This function adds a dot at the top 
+ **/
+
+//period 200
+typedef enum scoreStates{score_start} scoreStates;
+int scoreUpdate(int state){
+	if(!start){
+		return state;
+	}
+	static unsigned char time = 0;
+	if(time >= 8){
+		time = 0;
+	}
+	
+	time++;
+	
+	
+	return state;
+}
+typedef enum joystickStates{joystick_start, joystick_wait} joystickStates;
 int joystickUpdate(int state){
-	static unsigned char bOutput = 0x04;
 
 	unsigned int LRTemp = adc_read(0);
 
 	switch (state) { 
 		case joystick_start:
-			if(LRTemp > 800 && bOutput < 0x08){ //right
+			if(LRTemp > 1000 && bOutput < 0x08){ //right
 				bOutput = bOutput << 1;
+				state = joystick_wait;
 			}
-			if(LRTemp < 400 && bOutput > 0x1){
+			if(LRTemp < 200 && bOutput > 0x1){
 				bOutput = bOutput >> 1;
+				state = joystick_wait;
 			}
-			//state = joystick_wait;
 			break;
-		case joystick_wait:{
-			if(LRTemp > 550 && LRTemp < 580){
+		case joystick_wait:
+			if(LRTemp < 580 && LRTemp > 500 ){
 				state = joystick_start;
 			}
-		}
 		default:
 			break;
 	}
 	PORTB = bOutput;
-
 	return state;
 }
-
+typedef enum displayStates{display_start} displayStates;
+int displayUpdate(int state){
+	
+	switch (state) { 
+		case display_start:
+			transmit_data(columnOutput);
+			PORTD= rowOutput;
+			
+			break;
+		default:
+			break;
+	}
+	return state;
+}
+static task task1, task2, task4, task5, task3, task6;
+	task *tasks[] = {&task1, &task2, &task4, &task5, &task3, &task6};
+typedef enum startButtonStates{updateStart_start, updateStart_next} startButtonStates;
+int updateStart(int state){
+	//function for adding new column here
+	switch (state) { 
+		case updateStart_start:
+			if( startButton ){
+				task1.state = updateColumns_start;
+				songIndex = 0;
+				task4.state = score_start;
+				task5.state = song_play;
+				task6.state = joystick_start;
+				points = 0;
+				state = updateStart_next;
+			}
+			break;
+		case updateStart_next:
+			if(!startButton){
+				state = updateStart_start;
+			}
+			break;
+		default:
+			break;
+	}
+	return state;
+}
 int main(void) {
-	DDRA = 0x00; PORTA = 0xFF;
+	DDRA = 0xFC; PORTA = 0x03;
 	DDRB = 0xFF; PORTB = 0x00;
-
-	TimerSet(100);
+	DDRC = 0xFF; PORTC = 0x00;
+	DDRD = 0xFF; PORTD = 0x00;
+	
+	
+	const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
+	
+	//task 1
+	task1.state = updateColumns_start;
+	task1.period = 1000;
+	task1.elapsedTime = task1.period;
+	task1.TickFct = &updateColumns; 
+	
+	
+	//task 2
+	task2.state = updateStart_start;
+	task2.period = 20;
+	task2.elapsedTime = task2.period;
+	task2.TickFct = &updateStart; 
+	
+	//task6
+	task6.state = joystick_start;
+	task6.period = 500;
+	task6.elapsedTime = task6.period;
+	task6.TickFct = &joystickUpdate; 
+	
+	//task4
+	task4.state = score_start;
+	task4.period = 200;
+	task4.elapsedTime = task4.period;
+	task4.TickFct = &scoreUpdate; 
+	
+	//task5
+	task5.state = song_play;
+	task5.period = 2;
+	task5.elapsedTime = task5.period;
+	task5.TickFct = &song_Update; 
+	
+	
+	//task 3
+	task3.state = display_start;
+	task3.period = 20;
+	task3.elapsedTime = task3.period;
+	task3.TickFct = &displayUpdate; 
+	
+	
+	TimerSet(1);
 	TimerOn();
 	PWM_on();
 	ADC_init();
@@ -176,12 +396,26 @@ int main(void) {
  * 345
  * 123
 **/
-	static unsigned char state = joystick_start;
+
 	
 	while (1) {
-		unsigned int LRTemp = adc_read(0);
-		//bigger than 550 less than 580
-		state = joystickUpdate(state);
+		
+		/**
+		if(LRTemp > 800){ //right
+			output |= 0x04;
+		}
+		if(LR < 400){ //left 
+			output |= 0x08;
+		}
+        PORTB = output;**/
+        
+		for(i = 0; i<numTasks; i++){
+			if(tasks[i]->elapsedTime == tasks[i]->period){
+				tasks[i]->elapsedTime = tasks[i]->TickFct(tasks[i]->state);
+				tasks[i]->elapsedTime = 0;
+			}
+			tasks[i]->elapsedTime +=10;
+		}
 		while(!TimerFlag);
 		TimerFlag = 0;
 		

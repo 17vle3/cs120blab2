@@ -13,7 +13,7 @@
 
 #define startButton (~PINA & 0x02)>>1
 
-
+/**
 void transmit_data(unsigned char data) {
 	int i;
 	for (i = 0; i < 8 ; ++i) {
@@ -28,9 +28,24 @@ void transmit_data(unsigned char data) {
 	// set RCLK = 1. Rising edge copies data from “Shift” register to “Storage” register
 	PORTC |= 0x04;
 	// clears all lines in preparation of a new transmission
-	PORTC = 0x00;
+	PORTC = 0;
+}	**/
+void transmit_data(unsigned char data) {
+	int i;
+	for (i = 0; i < 8 ; ++i) {
+		// Sets SRCLR to 1 allowing data to be set
+		// Also clears SRCLK i0n preparation of sending data
+		PORTA = 0x20;
+		// set SER = next bit of data to be sent.
+		PORTA |= ((data >> i) & 0x04);
+		// set SRCLK = 1. Rising edge shifts next bit of data into the shift register
+		PORTA |= 0x10;
+	}
+	// set RCLK = 1. Rising edge copies data from “Shift” register to “Storage” register
+	PORTA |= 0x08;
+	// clears all lines in preparation of a new transmission
+	PORTA = PORTA & 0b11000011;
 }	
-
 unsigned char GetBit(unsigned char C, unsigned char index){
 	unsigned char maskValue = 0x01 << index;
 	return ((C & maskValue) == 0x00) ? 0x00 : 0x01;
@@ -139,12 +154,14 @@ unsigned const char song[] = {2,1,0,1,2  ,2,2,1,1,1,   2,3,3,2,1,   0,1,2,2,2,  
 unsigned const char songSize = 25;
 static unsigned char songIndex = 0;
 static unsigned char existingColumns = 0; //which columns exist right now in binary 0x00 = none 0x01 = top column 0x02 = second column etc 
+static unsigned char index=0;
 //------------------Shared Variables for POINTS----------------
 unsigned static char points= 0;
 unsigned static char start= 1;
 unsigned char rightButtonPressed;
 unsigned short LRTemp, UDTemp;
 static unsigned char bOutput = 0x04;
+
 //------------------End Shared Variables----------------
 
 typedef enum song_states{song_start, song_play, song_done, song_waitRelease, song_waitPress, song_waitRelease2 } song_states;
@@ -160,11 +177,11 @@ double g = 392 ;
 	//unsigned char a2 = ((~PINA & 0x0F) & 0x04)>>2;
 	static unsigned char time = 0x00;
 	//unsigned char zero = ((~PINA & 0x0F) == 0x00);                         //f e c b a e c b a
-	double arr[] = {0,  e,d,c,d,e,  e,e,d,d,d   ,e,g,g,e,d,    c,d,e,e,e,    d,d,e,d,c}; //23
-	double arr1[] = {2500,   1000,1000,1000,1000,1000, 
-		1000,1000,1000,1000,1000,     1000,1000,1000,1000,1000,   1000,1000,1000,1000,1000,
-		1000,1000,1000,1000,1000 };
-	static unsigned char index=0;
+	double arr[] = {0,  e,d,c,d,e,  e,e,d,d,d   ,e,g,g,e,d,    c,d,e,e,e,    d,d,e,d,c,0}; //23
+	double arr1[] = {200,   155,155,155,155,155, 
+		155,155,155,155,155,       155,155,155,155,155,      155,155,155,155,155,  
+		155,155,155,155,155        ,155 };
+
 	static double freq=0;
 	
 	switch (state) { //transitions
@@ -181,7 +198,7 @@ double g = 392 ;
 				break;
 			}
 			else {
-				if(index < 26){
+				if(index < 27){
 					index = index + 1;
 					time = 0;
 					break;
@@ -239,6 +256,7 @@ int updateColumns(int state){
 	if(time >= 8){
 			if(songIndex>= songSize){
 				rowOutput = 0x00;
+				LCD_DisplayString(0, "Game Over!");
 			}
 			else{
 				rowOutput= row[song[songIndex]];
@@ -311,24 +329,32 @@ int displayUpdate(int state){
 }
 static task task1, task2, task4, task5, task3, task6;
 	task *tasks[] = {&task1, &task2, &task4, &task5, &task3, &task6};
-typedef enum startButtonStates{updateStart_start, updateStart_next} startButtonStates;
+typedef enum startButtonStates{updateStart_start,updateStart_start2, updateStart_next} startButtonStates;
 int updateStart(int state){
-	//function for adding new column here
+	static unsigned char startTime = 0;
 	switch (state) { 
-		case updateStart_start:
-			if( startButton ){
-				task1.state = updateColumns_start;
+		case updateStart_start:/**
+			if( (~PINA & 0x02 >>1) && startTime == 0x02){
+				points = 0;
 				songIndex = 0;
+				task1.state = updateColumns_start;
 				task4.state = score_start;
 				task5.state = song_play;
 				task6.state = joystick_start;
-				points = 0;
 				state = updateStart_next;
+				index = 1;
+				break;
 			}
+			else{
+				if(startTime < 2){
+					startTime++;
+				}
+			}**/
 			break;
 		case updateStart_next:
-			if(!startButton){
+			if(!(~PINA & 0x02 >>1) ){
 				state = updateStart_start;
+				startTime = 0;
 			}
 			break;
 		default:
@@ -372,7 +398,7 @@ int main(void) {
 	
 	//task5
 	task5.state = song_play;
-	task5.period = 2;
+	task5.period = 50;
 	task5.elapsedTime = task5.period;
 	task5.TickFct = &song_Update; 
 	
@@ -400,14 +426,6 @@ int main(void) {
 	
 	while (1) {
 		
-		/**
-		if(LRTemp > 800){ //right
-			output |= 0x04;
-		}
-		if(LR < 400){ //left 
-			output |= 0x08;
-		}
-        PORTB = output;**/
         
 		for(i = 0; i<numTasks; i++){
 			if(tasks[i]->elapsedTime == tasks[i]->period){
@@ -416,6 +434,7 @@ int main(void) {
 			}
 			tasks[i]->elapsedTime +=10;
 		}
+		
 		while(!TimerFlag);
 		TimerFlag = 0;
 		

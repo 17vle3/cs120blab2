@@ -34,13 +34,7 @@ void transmit_data(unsigned char data) {
 	// clears all lines in preparation of a new transmission
 	PORTC = 0x00;
 }	
-
-unsigned char GetBit(unsigned char C, unsigned char index){
-	unsigned char maskValue = 0x01 << index;
-	return ((C & maskValue) == 0x00) ? 0x00 : 0x01;
-}
 volatile unsigned char TimerFlag = 0;
-
 unsigned long _avr_timer_M = 1;
 unsigned long _avr_timer_cntcurr = 0;
 
@@ -113,27 +107,9 @@ void PWM_off(){
 	TCCR3B = 0x00;
 }
 
-//------------------Joystick Functions----------------**
-unsigned short ADC_Scaler(unsigned short max, unsigned short value, unsigned char d)
-{
-	unsigned char position;
-    unsigned short div = max / d;
-
-	int i; 
-    for(i = 1; i <= d; i++)
-    {
-        //Sets boundaries
-        if((value <= i*div) && (value >= (i-1)*div) )
-        {
-            position = i;
-        }
-    }
-    return position;
-}
 
 //------------------Shared Variables for MATRIX----------------
 unsigned char col[8] = {0b01111111,0b10111111,0b11011111,0b11101111,0b11110111,0b11111011,0b11111101,0b11111110};
-
 unsigned char row[4] = {0b01100010,0b01100100, 0b01101000,0b01110000, 0b01111110 }; //0 1 2 3 all
 static unsigned char columnIndex =0;
 unsigned char columnOutput = 0x00; //THE PORTC OUTPUT
@@ -259,7 +235,9 @@ int updateColumns(int state){
 		default:
 			break;
 	}
-	
+	if (time == 7){
+		if( bOutput >> song[songIndex]) score = score + 1;
+	}
 	if(time >= 8){
 			if(songIndex>= songSize){
 				rowOutput = 0x00;
@@ -344,13 +322,14 @@ int updateStart(int state){
 		case updateStart_start:
 			if( startButton ){
 				task1.state = updateColumns_start;
-				task2.state = updateStart_start;
-				task3.state = display_start;
+				//task2.state = updateStart_start;
+				//task3.state = display_start;
 				task4.state = score_start;
 				task5.state = song_play;
 				task6.state = joystick_start;
 				points = 0;
-				state = updateStart_next;
+				songIndex = 0;
+				//state = updateStart_next;
 			}
 			break;
 		case updateStart_next:

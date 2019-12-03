@@ -13,6 +13,23 @@
 
 #define startButton (~PINA & 0x02)>>1
 
+/**
+void transmit_data(unsigned char data) {
+	int i;
+	for (i = 0; i < 8 ; ++i) {
+		// Sets SRCLR to 1 allowing data to be set
+		// Also clears SRCLK i0n preparation of sending data
+		PORTC = 0x01;
+		// set SER = next bit of data to be sent.
+		PORTC |= ((data >> i) & 0x08);
+		// set SRCLK = 1. Rising edge shifts next bit of data into the shift register
+		PORTC |= 0x02;
+	}
+	// set RCLK = 1. Rising edge copies data from “Shift” register to “Storage” register
+	PORTC |= 0x04;
+	// clears all lines in preparation of a new transmission
+	PORTC = 0;
+}	**/
 void transmit_data(unsigned char data) {
 	int i;
 	for (i = 0; i < 8 ; ++i) {
@@ -145,7 +162,6 @@ unsigned static char start= 1;
 unsigned char rightButtonPressed;
 unsigned short LRTemp, UDTemp;
 static unsigned char bOutput = 0x04;
-unsigned char output[] = {1,2,4,8};
 //------------------End Shared Variables----------------
 
 typedef enum song_states{song_start, song_play, song_done, song_waitRelease, song_waitPress, song_waitRelease2 } song_states;
@@ -236,19 +252,15 @@ int updateColumns(int state){
 		default:
 			break;
 	}
-	if ( time == 7 ){
-		int i;
-		for(i = 0; i < 4; i++){
-			if(bOutput == output[i] && i == song[songIndex]){
-				points = points + 1;
-				LCD_ClearScreen();
-				LCD_WriteData( points/10 + '0' );
-				LCD_WriteData( points%10 + '0' );
-				if(points>highScore){
-					highScore = points;
-				}
-			}
+	if ( time == 7 && (bOutput >> song[songIndex])&0x01 ){
+		points = points + 1;
+		LCD_ClearScreen();
+			LCD_WriteData( points/10 + '0' );
+			LCD_WriteData( points%10 + '0' );
+		if(points>highScore){
+			highScore = points;
 		}
+		
 	}
 	if(time >= 8){
 			if(songIndex>= songSize){
@@ -334,9 +346,8 @@ typedef enum startButtonStates{updateStart_start,updateStart_start2, updateStart
 int updateStart(int state){
 	static unsigned char startTime = 0;
 	switch (state) { 
-		case updateStart_start:
-			if( startButton && startTime == 0x02){
-				/**
+		case updateStart_start:/**
+			if( (~PINA & 0x02 >>1) && startTime == 0x02){
 				points = 0;
 				songIndex = 0;
 				task1.state = updateColumns_start;
@@ -345,15 +356,13 @@ int updateStart(int state){
 				task6.state = joystick_start;
 				state = updateStart_next;
 				index = 1;
-				break;**/
-				//PORTB = 0x01;
+				break;
 			}
 			else{
-				if(startButton && startTime < 2){
+				if(startTime < 2){
 					startTime++;
 				}
-				PORTB = 0x00;
-			}
+			}**/
 			break;
 		case updateStart_next:
 			if(!(~PINA & 0x02 >>1) ){
@@ -390,7 +399,7 @@ int main(void) {
 	
 	//task6
 	task6.state = joystick_start;
-	task6.period = 1000;
+	task6.period = 500;
 	task6.elapsedTime = task6.period;
 	task6.TickFct = &joystickUpdate; 
 	

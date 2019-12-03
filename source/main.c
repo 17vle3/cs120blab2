@@ -323,7 +323,7 @@ int joystickUpdate(int state){
 		default:
 			break;
 	}
-	PORTB = bOutput;
+	//PORTB = bOutput;
 	return state;
 }
 typedef enum displayStates{display_start} displayStates;
@@ -346,8 +346,9 @@ typedef enum startButtonStates{updateStart_start,updateStart_start2, updateStart
 int updateStart(int state){
 	static unsigned char startTime = 0;
 	switch (state) { 
-		case updateStart_start:/**
-			if( (~PINA & 0x02 >>1) && startTime == 0x02){
+		case updateStart_start:
+			if( startButton && startTime == 0x02){
+				/**
 				points = 0;
 				songIndex = 0;
 				task1.state = updateColumns_start;
@@ -356,13 +357,15 @@ int updateStart(int state){
 				task6.state = joystick_start;
 				state = updateStart_next;
 				index = 1;
-				break;
+				break;**/
+				PORTB = 0x01;
 			}
 			else{
-				if(startTime < 2){
+				if(startButton && startTime < 2){
 					startTime++;
 				}
-			}**/
+				PORTB = 0x00;
+			}
 			break;
 		case updateStart_next:
 			if(!(~PINA & 0x02 >>1) ){

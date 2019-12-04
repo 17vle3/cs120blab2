@@ -11,31 +11,15 @@
 #include "io.h"
 #include <util/delay.h>
 
-#define startButton (~PINA & 0x02)>>1
+#define startButton (~PINB & 0x10)>>4
 
-/**
-void transmit_data(unsigned char data) {
-	int i;
-	for (i = 0; i < 8 ; ++i) {
-		// Sets SRCLR to 1 allowing data to be set
-		// Also clears SRCLK i0n preparation of sending data
-		PORTC = 0x01;
-		// set SER = next bit of data to be sent.
-		PORTC |= ((data >> i) & 0x08);
-		// set SRCLK = 1. Rising edge shifts next bit of data into the shift register
-		PORTC |= 0x02;
-	}
-	// set RCLK = 1. Rising edge copies data from “Shift” register to “Storage” register
-	PORTC |= 0x04;
-	// clears all lines in preparation of a new transmission
-	PORTC = 0;
-}	**/
 void transmit_data(unsigned char data) {
 	int i;
 	for (i = 0; i < 8 ; ++i) {
 		// Sets SRCLR to 1 allowing data to be set
 		// Also clears SRCLK i0n preparation of sending data
 		PORTA = 0x20;
+		//PORTA &= 0b11101111;
 		// set SER = next bit of data to be sent.
 		PORTA |= ((data >> i) & 0x04);
 		// set SRCLK = 1. Rising edge shifts next bit of data into the shift register
@@ -157,7 +141,7 @@ static unsigned char existingColumns = 0; //which columns exist right now in bin
 static unsigned char index=0;
 //------------------Shared Variables for POINTS----------------
 unsigned static char points= 0;
-unsigned static char highScore= 0;
+unsigned static char highScore;
 unsigned static char start= 1;
 unsigned char rightButtonPressed;
 unsigned short LRTemp, UDTemp;
@@ -172,15 +156,13 @@ double e = 329.63;
 double g = 392 ;
 
 
-	unsigned char a0 = (~PINA & 0x0F) & 0x01;
-	unsigned char a1 = ((~PINA & 0x0F) & 0x02)>>1;
 	//unsigned char a2 = ((~PINA & 0x0F) & 0x04)>>2;
 	static unsigned char time = 0x00;
 	//unsigned char zero = ((~PINA & 0x0F) == 0x00);                         //f e c b a e c b a
 	double arr[] = {0,  e,d,c,d,e,  e,e,d,d,d   ,e,g,g,e,d,    c,d,e,e,e,    d,d,e,d,c,0}; //23
-	double arr1[] = {200,   155,155,155,155,155, 
-		155,155,155,155,155,       155,155,155,155,155,      155,155,155,155,155,  
-		155,155,155,155,155        ,155 };
+	double arr1[] = {1,   1,1,1,1,1, 
+		1,1,1,1,1,       1,1,1,1,1,      1,1,1,1,1,  
+		1,1,1,1,1,        1 };
 
 	static double freq=0;
 	
@@ -252,7 +234,7 @@ int updateColumns(int state){
 		default:
 			break;
 	}
-	if ( time == 7 && (bOutput >> song[songIndex])&0x01 ){
+	if ( time == 7 && (bOutput>>song[songIndex]) &0x01 ){
 		points = points + 1;
 		LCD_ClearScreen();
 			LCD_WriteData( points/10 + '0' );
@@ -267,8 +249,8 @@ int updateColumns(int state){
 				rowOutput = 0x00;
 				LCD_ClearScreen();
 				LCD_DisplayString(1, "GG! HS = " );
-				LCD_WriteData( points/10 + '0' );
-				LCD_WriteData( points%10 + '0' );
+				LCD_WriteData( highScore/10 + '0' );
+				LCD_WriteData( highScore%10 + '0' );
 				state = updateColumns_done;
 			}
 			else{
@@ -323,7 +305,9 @@ int joystickUpdate(int state){
 		default:
 			break;
 	}
-	PORTB = bOutput;
+	if(bOutput!= 0b00010000){
+	//	PORTB = bOutput;
+	}
 	return state;
 }
 typedef enum displayStates{display_start} displayStates;
@@ -346,26 +330,22 @@ typedef enum startButtonStates{updateStart_start,updateStart_start2, updateStart
 int updateStart(int state){
 	static unsigned char startTime = 0;
 	switch (state) { 
-		case updateStart_start:/**
-			if( (~PINA & 0x02 >>1) && startTime == 0x02){
+		case updateStart_start:
+			if( startButton && startTime >= 0x01){
 				points = 0;
 				songIndex = 0;
 				task1.state = updateColumns_start;
-				task4.state = score_start;
 				task5.state = song_play;
-				task6.state = joystick_start;
 				state = updateStart_next;
 				index = 1;
 				break;
 			}
-			else{
-				if(startTime < 2){
-					startTime++;
-				}
-			}**/
+			else if(startTime < 2){
+				startTime++;
+			}
 			break;
 		case updateStart_next:
-			if(!(~PINA & 0x02 >>1) ){
+			if(!startButton ){
 				state = updateStart_start;
 				startTime = 0;
 			}
@@ -377,7 +357,7 @@ int updateStart(int state){
 }
 int main(void) {
 	DDRA = 0xFC; PORTA = 0x03;
-	DDRB = 0xFF; PORTB = 0x00;
+	DDRB = 0b11101111 ; PORTB = 0b00010000;
 	DDRC = 0xFF; PORTC = 0x00;
 	DDRD = 0xFF; PORTD = 0x00;
 	
@@ -386,7 +366,7 @@ int main(void) {
 	
 	//task 1
 	task1.state = updateColumns_start;
-	task1.period = 1000;
+	task1.period = 125;
 	task1.elapsedTime = task1.period;
 	task1.TickFct = &updateColumns; 
 	
@@ -399,7 +379,7 @@ int main(void) {
 	
 	//task6
 	task6.state = joystick_start;
-	task6.period = 500;
+	task6.period = 100;
 	task6.elapsedTime = task6.period;
 	task6.TickFct = &joystickUpdate; 
 	
@@ -411,7 +391,7 @@ int main(void) {
 	
 	//task5
 	task5.state = song_play;
-	task5.period = 50;
+	task5.period = 125;
 	task5.elapsedTime = task5.period;
 	task5.TickFct = &song_Update; 
 	
@@ -442,10 +422,10 @@ int main(void) {
         
 		for(i = 0; i<numTasks; i++){
 			if(tasks[i]->elapsedTime == tasks[i]->period){
-				tasks[i]->elapsedTime = tasks[i]->TickFct(tasks[i]->state);
+				tasks[i]->state = tasks[i]->TickFct(tasks[i]->state);
 				tasks[i]->elapsedTime = 0;
 			}
-			tasks[i]->elapsedTime +=10;
+			tasks[i]->elapsedTime +=1;
 		}
 		
 		while(!TimerFlag);

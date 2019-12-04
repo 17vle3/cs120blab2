@@ -11,7 +11,7 @@
 #include "io.h"
 #include <util/delay.h>
 
-#define startButton (~PINB & 0x10)>>4
+#define startButton ((~PINB & 0x10))
 
 void transmit_data(unsigned char data) {
 	int i;
@@ -248,7 +248,24 @@ int updateColumns(int state){
 			if(songIndex>= songSize){
 				rowOutput = 0x00;
 				LCD_ClearScreen();
-				LCD_DisplayString(1, "GG! HS = " );
+				if(points > 9){
+					LCD_WriteData(87);
+					LCD_WriteData(73);
+					LCD_WriteData(78);
+					LCD_WriteData(33);	
+				}
+				else{
+					LCD_WriteData(76);
+					LCD_WriteData(79);
+					LCD_WriteData(83);
+					LCD_WriteData(69);
+				}
+				LCD_WriteData(32);
+				LCD_WriteData(72);
+				LCD_WriteData(83);
+				LCD_WriteData(58);
+				LCD_WriteData(32);
+				//LCD_DisplayString(1, "HS = " );
 				LCD_WriteData( highScore/10 + '0' );
 				LCD_WriteData( highScore%10 + '0' );
 				state = updateColumns_done;
@@ -329,8 +346,29 @@ static task task1, task2, task4, task5, task3, task6;
 typedef enum startButtonStates{updateStart_start,updateStart_start2, updateStart_next} startButtonStates;
 int updateStart(int state){
 	static unsigned char startTime = 0;
+	static unsigned char pressed = 0;
+	
+	if(pressed == 0 && startButton && startTime >= 0x01){
+		points = 0;
+		songIndex = 0;
+		task1.state = updateColumns_start;
+		task5.state = song_play;
+		//state = updateStart_next;
+		index = 1;
+		//break;
+		pressed = 1;
+	}
+	else if(pressed == 0 &&startButton && startTime < 2){
+		startTime++;
+	}
+	if(!startButton && pressed == 1 ){
+		pressed = 0;
+		startTime = 0;
+	}
+	/**
 	switch (state) { 
 		case updateStart_start:
+		//PORTB = 0x00;
 			if( startButton && startTime >= 0x01){
 				points = 0;
 				songIndex = 0;
@@ -340,11 +378,12 @@ int updateStart(int state){
 				index = 1;
 				break;
 			}
-			else if(startTime < 2){
+			else if(startButton && startTime < 2){
 				startTime++;
 			}
 			break;
 		case updateStart_next:
+		//PORTB = 0x01;
 			if(!startButton ){
 				state = updateStart_start;
 				startTime = 0;
@@ -352,7 +391,7 @@ int updateStart(int state){
 			break;
 		default:
 			break;
-	}
+	}**/
 	return state;
 }
 int main(void) {

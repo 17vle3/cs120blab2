@@ -301,7 +301,7 @@ int scoreUpdate(int state){
 }
 typedef enum joystickStates{joystick_start, joystick_wait} joystickStates;
 int joystickUpdate(int state){
-
+	
 	unsigned int LRTemp = adc_read(0);
 
 	switch (state) { 
@@ -322,9 +322,9 @@ int joystickUpdate(int state){
 		default:
 			break;
 	}
-	if(bOutput!= 0b00010000){
-	//	PORTB = bOutput;
-	}
+	PORTB &= 11110000;
+	PORTB |= bOutput;
+	
 	return state;
 }
 typedef enum displayStates{display_start} displayStates;
